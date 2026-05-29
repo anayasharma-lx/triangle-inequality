@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Triangle Inequality</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=DM+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --paper:#FDFAF4;--paper2:#F4EFE5;--paper3:#EDE6D8;
+  --ink:#22201A;--ink2:#504840;--ink3:#8C8070;--ink4:#B8B0A0;
+  --rule:#DDD8CE;
+  --ra:#C04030;--rb:#1B5CA0;--rc:#1B7840;
+  --ra2:#98301C;--rb2:#133F78;--rc2:#135C2C;
+  --ra-t:rgba(192,64,48,.10);--rb-t:rgba(27,92,160,.10);--rc-t:rgba(27,120,64,.10);
+  --ra-r:rgba(192,64,48,.30);--rb-r:rgba(27,92,160,.30);--rc-r:rgba(27,120,64,.30);
+  --snap-col:#1B7840;--snap-t:rgba(27,120,64,.15);
+  --sans:'DM Sans',system-ui,sans-serif;
+  --mono:'DM Mono',ui-monospace,monospace;
+  --serif:'Fraunces',Georgia,serif;
+}
+html,body{width:100%;height:100%;background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden}
+.shell{display:grid;grid-template-columns:260px 1fr;height:100vh}
+
+/* ── SIDEBAR ── */
+.sidebar{background:var(--paper2);border-right:1.5px solid var(--rule);display:flex;flex-direction:column;overflow:hidden}
+.sb-hdr{padding:18px 20px 14px;border-bottom:1.5px solid var(--rule)}
+.sb-chapter{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--ink4);margin-bottom:4px}
+.sb-title{font-family:var(--serif);font-size:21px;font-weight:600;color:var(--ink);line-height:1.1}
+.sb-sub{font-family:var(--serif);font-style:italic;font-size:13px;color:var(--ink3);margin-top:2px}
+.sb-body{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:16px}
+
+/* Stick controls */
+.stick-block{display:flex;flex-direction:column;gap:5px}
+.stick-top{display:flex;align-items:center;gap:8px}
+.stick-bar{width:26px;height:7px;border-radius:3.5px;flex-shrink:0}
+.stick-ltr{font-family:var(--mono);font-size:12px;font-weight:600;width:12px}
+.stick-num{font-family:var(--mono);font-size:19px;font-weight:600;color:var(--ink);line-height:1;flex:1}
+.stick-unit{font-family:var(--mono);font-size:11px;color:var(--ink4)}
+
+/* Lock button */
+.lock-btn{width:30px;height:30px;border-radius:7px;border:1.5px solid var(--rule);
+  background:var(--paper);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:13px;transition:.14s;flex-shrink:0;line-height:1}
+.lock-btn:hover{border-color:var(--ink3)}
+.lock-btn.locked{background:var(--ink);border-color:var(--ink);color:var(--paper);font-size:11px}
+
+/* Slider */
+input[type=range].sl{
+  width:100%;height:4px;-webkit-appearance:none;border-radius:2px;outline:none;
+  cursor:pointer;display:block;transition:opacity .15s;
+  background:linear-gradient(to right,var(--fc) var(--pct,50%),var(--rule) var(--pct,50%));
+}
+input[type=range].sl:disabled{opacity:.3;cursor:not-allowed}
+input[type=range].sl::-webkit-slider-thumb{
+  -webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+  background:var(--fc);border:2.5px solid white;cursor:pointer;
+  box-shadow:0 1px 5px rgba(0,0,0,.22);}
+.sl-a{--fc:var(--ra)}.sl-b{--fc:var(--rb)}.sl-c{--fc:var(--rc)}
+
+/* Divider */
+.sb-div{height:1.5px;background:var(--rule);margin:0 -20px}
+
+/* Toggle switch */
+.tog-group{display:flex;flex-direction:column;gap:8px}
+.tog-sec-lbl{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink4);margin-bottom:1px}
+.tog-row{display:flex;align-items:center;gap:9px;cursor:pointer}
+.tswitch{width:32px;height:18px;border-radius:9px;background:var(--rule);border:none;
+  cursor:pointer;position:relative;flex-shrink:0;transition:background .18s}
+.tswitch.on{background:var(--rb)}
+.tswitch::after{content:'';position:absolute;top:3px;left:3px;width:12px;height:12px;
+  border-radius:50%;background:white;transition:.18s;box-shadow:0 1px 3px rgba(0,0,0,.22)}
+.tswitch.on::after{left:17px}
+.tog-lbl{font-size:13px;font-weight:500;color:var(--ink2)}
+
+/* Presets */
+.preset-sec{display:flex;flex-direction:column;gap:5px}
+.preset-sec-lbl{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink4);margin-bottom:2px}
+.preset-btn{
+  display:flex;align-items:center;padding:8px 10px;border:1.5px solid var(--rule);
+  border-radius:7px;background:var(--paper);cursor:pointer;transition:.13s;
+  font-family:var(--mono);font-size:13px;font-weight:600;color:var(--ink2);gap:6px;
+}
+.preset-btn:hover{border-color:var(--ink3);background:var(--paper3)}
+.pb-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* Verdict */
+.verdict-wrap{margin-top:auto;padding-top:12px}
+.verdict{
+  padding:11px 13px;border-radius:9px;text-align:center;
+  font-family:var(--serif);font-size:14px;font-weight:600;line-height:1.35;
+  background:var(--paper3);color:var(--ink3);border:1.5px solid var(--rule);
+  transition:all .3s;
+}
+.verdict.ok{background:var(--rc-t);border-color:var(--rc-r);color:var(--rc2)}
+.verdict.no{background:var(--ra-t);border-color:var(--ra-r);color:var(--ra2)}
+.verdict.close{background:rgba(160,120,32,.08);border-color:rgba(160,120,32,.25);color:#7A5A10}
+
+/* Reset */
+.reset-btn{width:100%;margin-top:7px;padding:8px;border:1.5px solid var(--rule);border-radius:7px;
+  background:transparent;font-family:var(--sans);font-size:12px;font-weight:600;
+  color:var(--ink3);cursor:pointer;transition:.13s}
+.reset-btn:hover{border-color:var(--ink3);color:var(--ink);background:var(--paper3)}
+
+/* ── CANVAS AREA ── */
+.canvas-area{display:flex;flex-direction:column;overflow:hidden;position:relative}
+.hint-bar{padding:10px 20px;border-bottom:1.5px solid var(--rule);background:var(--paper);
+  display:flex;align-items:center;gap:8px;flex-shrink:0}
+.hint-txt{font-family:var(--serif);font-style:italic;font-size:13px;color:var(--ink3);line-height:1.4}
+.hint-txt strong{font-style:normal;font-weight:600;color:var(--ink2)}
+#cvs{display:block;width:100%;height:100%;touch-action:none;cursor:default}
+
+@media(max-width:700px){
+  .shell{grid-template-columns:1fr;height:auto}
+  .sidebar{height:auto;border-right:none;border-bottom:1.5px solid var(--rule)}
+  html,body{overflow:auto}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-hdr">
+      <div class="sb-chapter">Geometry · Discovery</div>
+      <div class="sb-title">Triangle Inequality</div>
+      <div class="sb-sub">Can three sticks always close into a triangle?</div>
+    </div>
+    <div class="sb-body">
+
+      <!-- Stick A -->
+      <div class="stick-block">
+        <div class="stick-top">
+          <div class="stick-bar" style="background:var(--ra)"></div>
+          <span class="stick-ltr" style="color:var(--ra)">a</span>
+          <span class="stick-num" id="val-a">5</span>
+          <span class="stick-unit">units</span>
+          <button class="lock-btn" id="lock-a" title="Lock a" onclick="toggleLock('a')">🔓</button>
+        </div>
+        <input type="range" class="sl sl-a" id="sl-a" min="1" max="12" value="5" step="0.5"/>
+      </div>
+
+      <!-- Stick B -->
+      <div class="stick-block">
+        <div class="stick-top">
+          <div class="stick-bar" style="background:var(--rb)"></div>
+          <span class="stick-ltr" style="color:var(--rb)">b</span>
+          <span class="stick-num" id="val-b">5</span>
+          <span class="stick-unit">units</span>
+          <button class="lock-btn" id="lock-b" title="Lock b" onclick="toggleLock('b')">🔓</button>
+        </div>
+        <input type="range" class="sl sl-b" id="sl-b" min="1" max="12" value="5" step="0.5"/>
+      </div>
+
+      <!-- Stick C -->
+      <div class="stick-block">
+        <div class="stick-top">
+          <div class="stick-bar" style="background:var(--rc)"></div>
+          <span class="stick-ltr" style="color:var(--rc)">c</span>
+          <span class="stick-num" id="val-c">5</span>
+          <span class="stick-unit">units</span>
+          <button class="lock-btn" id="lock-c" title="Lock c" onclick="toggleLock('c')">🔓</button>
+        </div>
+        <input type="range" class="sl sl-c" id="sl-c" min="1" max="12" value="5" step="0.5"/>
+      </div>
+
+      <div class="sb-div"></div>
+
+      <div class="tog-group">
+        <div class="tog-sec-lbl">Show</div>
+        <div class="tog-row" onclick="toggleCircles()">
+          <button class="tswitch" id="tsw-c"></button>
+          <span class="tog-lbl">Reach circles</span>
+        </div>
+        <div class="tog-row" onclick="toggleGrid()">
+          <button class="tswitch" id="tsw-g"></button>
+          <span class="tog-lbl">Grid</span>
+        </div>
+      </div>
+
+      <div class="sb-div"></div>
+
+      <div class="preset-sec">
+        <div class="preset-sec-lbl">Try these lengths</div>
+        <button class="preset-btn" onclick="applyPreset(3,4,5)">
+          <div class="pb-dot" style="background:var(--ra)"></div>
+          <div class="pb-dot" style="background:var(--rb)"></div>
+          <div class="pb-dot" style="background:var(--rc)"></div>
+          <span>3 · 4 · 5</span>
+        </button>
+        <button class="preset-btn" onclick="applyPreset(5,5,5)">
+          <div class="pb-dot" style="background:var(--ra)"></div>
+          <div class="pb-dot" style="background:var(--rb)"></div>
+          <div class="pb-dot" style="background:var(--rc)"></div>
+          <span>5 · 5 · 5</span>
+        </button>
+        <button class="preset-btn" onclick="applyPreset(2,3,6)">
+          <div class="pb-dot" style="background:var(--ra)"></div>
+          <div class="pb-dot" style="background:var(--rb)"></div>
+          <div class="pb-dot" style="background:var(--rc)"></div>
+          <span>2 · 3 · 6</span>
+        </button>
+        <button class="preset-btn" onclick="applyPreset(1,2,4)">
+          <div class="pb-dot" style="background:var(--ra)"></div>
+          <div class="pb-dot" style="background:var(--rb)"></div>
+          <div class="pb-dot" style="background:var(--rc)"></div>
+          <span>1 · 2 · 4</span>
+        </button>
+        <button class="preset-btn" onclick="applyPreset(6,7,8)">
+          <div class="pb-dot" style="background:var(--ra)"></div>
+          <div class="pb-dot" style="background:var(--rb)"></div>
+          <div class="pb-dot" style="background:var(--rc)"></div>
+          <span>6 · 7 · 8</span>
+        </button>
+      </div>
+
+      <div class="verdict-wrap">
+        <div class="verdict" id="verdict">Drag the sticks — try to close all three ends</div>
+        <button class="reset-btn" onclick="resetPositions()">↺ Reset positions</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CANVAS -->
+  <div class="canvas-area" id="canvas-area">
+    <div class="hint-bar">
+      <span style="font-size:16px">✋</span>
+      <span class="hint-txt">Drag a <strong>tip</strong> to rotate the stick · drag the <strong>body</strong> to move it · try to join all three ends into a closed triangle</span>
+    </div>
+    <canvas id="cvs"></canvas>
+  </div>
+
+</div>
+
+<script>
+// ── POLYFILL ─────────────────────────────────────────────────────────────────
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r) {
+    if(w<2*r)r=w/2; if(h<2*r)r=h/2;
+    this.beginPath();
+    this.moveTo(x+r,y); this.arcTo(x+w,y,x+w,y+h,r); this.arcTo(x+w,y+h,x,y+h,r);
+    this.arcTo(x,y+h,x,y,r); this.arcTo(x,y,x+w,y,r); this.closePath();
+    return this;
+  };
+}
+
+// ── CONSTANTS ────────────────────────────────────────────────────────────────
+const STICK_W    = 11;   // rod thickness px
+const EP_R       = 9;    // endpoint radius px
+const HIT_EP     = 22;   // hit radius for endpoints
+const HIT_BODY   = 14;   // hit radius for body
+const SNAP_PX    = 26;   // px — joints glow when this close
+const CLOSE_PX   = 12;   // px — triangle "formed" threshold
+
+const STICK_DEFS = [
+  { id:'a', col:'#C04030', col2:'#8C2818', ring:'rgba(192,64,48,.32)', tint:'rgba(192,64,48,.10)' },
+  { id:'b', col:'#1B5CA0', col2:'#103D70', ring:'rgba(27,92,160,.32)', tint:'rgba(27,92,160,.10)' },
+  { id:'c', col:'#1B7840', col2:'#0E5428', ring:'rgba(27,120,64,.32)', tint:'rgba(27,120,64,.10)' },
+];
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let sLen = [5, 5, 5];             // logical lengths (units)
+let locks = [false, false, false];
+let showCircles = false, showGrid = false;
+
+// sticks[i] = { p0:{x,y}, p1:{x,y} }  — pixel coordinates
+let sticks = STICK_DEFS.map(() => ({ p0:{x:0,y:0}, p1:{x:0,y:0} }));
+
+let drag = null;
+// drag = { si: stickIndex, type: 'p0'|'p1'|'body',
+//          pivot: {x,y},     // for endpoint drag: the fixed end
+//          lenPx: number,    // fixed pixel length
+//          off0: {x,y},      // for body drag: offset from p0 at drag start
+//          off1: {x,y} }     //                offset from p1
+
+let anyMoved = false;
+let successShown = false;
+
+// ── CANVAS ───────────────────────────────────────────────────────────────────
+const cvs = document.getElementById('cvs');
+const ctx  = cvs.getContext('2d');
+const PR   = Math.min(window.devicePixelRatio || 1, 2);
+
+function CW() { return cvs.width  / PR; }
+function CH() { return cvs.height / PR; }
+function ppu()   { return Math.max(28, Math.min(54, CW() / 18)); }
+
+// ── LAYOUT ───────────────────────────────────────────────────────────────────
+function layoutSticks() {
+  const w = CW(), h = CH(), s = ppu();
+  const x0 = w * 0.12;
+  const vg = h / 4;
+  sticks.forEach((st, i) => {
+    st.p0 = { x: x0,                    y: vg * (i + 1) };
+    st.p1 = { x: x0 + sLen[i] * s,  y: vg * (i + 1) };
+  });
+  anyMoved   = false;
+  successShown = false;
+}
+
+function resetPositions() {
+  layoutSticks();
+  draw();
+  setVerdict('idle');
+}
+
+// ── DRAW ─────────────────────────────────────────────────────────────────────
+function draw() {
+  const w = CW(), h = CH();
+  ctx.clearRect(0, 0, w, h);
+
+  // Background
+  drawBackground(w, h);
+  if (showGrid)    drawGrid(w, h);
+  if (showCircles) drawReachCircles(w, h);
+
+  // Joints before sticks (so sticks render on top)
+  if (anyMoved) drawJoints(w, h);
+
+  // Sticks
+  sticks.forEach((st, i) => drawStick(st, i));
+
+  // If triangle formed, fill it
+  const tri = findTriangle();
+  if (tri.formed) drawFilledTriangle(tri);
+}
+
+function drawBackground(w, h) {
+  ctx.fillStyle = '#FDFAF4';
+  ctx.fillRect(0, 0, w, h);
+  // Subtle vignette
+  const vg = ctx.createRadialGradient(w/2,h/2,h*0.2,w/2,h/2,h*0.85);
+  vg.addColorStop(0,'rgba(0,0,0,0)');
+  vg.addColorStop(1,'rgba(0,0,0,.04)');
+  ctx.fillStyle = vg; ctx.fillRect(0,0,w,h);
+}
+
+function drawGrid(w, h) {
+  const step = ppu();
+  ctx.strokeStyle = 'rgba(0,0,0,.05)'; ctx.lineWidth = 1;
+  for(let x=0;x<w;x+=step){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+  for(let y=0;y<h;y+=step){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+}
+
+function drawReachCircles(w, h) {
+  const s = ppu();
+  sticks.forEach((st, i) => {
+    const def = STICK_DEFS[i];
+    const len = sLen[i] * s;
+    // Circle centered at each endpoint
+    [st.p0, st.p1].forEach(pt => {
+      ctx.beginPath(); ctx.arc(pt.x, pt.y, len, 0, Math.PI*2);
+      ctx.fillStyle = def.tint; ctx.fill();
+      ctx.strokeStyle = def.ring; ctx.lineWidth = 1.5;
+      ctx.setLineDash([5,5]); ctx.stroke(); ctx.setLineDash([]);
+    });
+  });
+}
+
+function drawJoints(w, h) {
+  // For each pair of sticks, for each combo of endpoints, show proximity indicator
+  const all = [
+    [sticks[0].p0, sticks[0].p1],
+    [sticks[1].p0, sticks[1].p1],
+    [sticks[2].p0, sticks[2].p1],
+  ];
+  for (let si = 0; si < 3; si++) {
+    for (let sj = si+1; sj < 3; sj++) {
+      for (let ei = 0; ei < 2; ei++) {
+        for (let ej = 0; ej < 2; ej++) {
+          const pi = all[si][ei], pj = all[sj][ej];
+          const d  = dist(pi, pj);
+          if (d < SNAP_PX * 2.5) {
+            const alpha = Math.max(0, 1 - d / (SNAP_PX * 2.5));
+            const mx = (pi.x + pj.x) / 2, my = (pi.y + pj.y) / 2;
+            const joined = d < CLOSE_PX;
+            // Glow circle at midpoint
+            const gR = joined ? 16 : 10 + (1-alpha)*6;
+            const grd = ctx.createRadialGradient(mx,my,0,mx,my,gR*2);
+            const col = joined ? '#1B7840' : '#A07020';
+            grd.addColorStop(0, col + (joined ? '55':'33'));
+            grd.addColorStop(1, 'transparent');
+            ctx.beginPath(); ctx.arc(mx,my,gR*2,0,Math.PI*2);
+            ctx.fillStyle = grd; ctx.fill();
+            if (joined) {
+              ctx.beginPath(); ctx.arc(mx,my,6,0,Math.PI*2);
+              ctx.fillStyle = '#1B7840'; ctx.fill();
+              ctx.strokeStyle='white'; ctx.lineWidth=2; ctx.stroke();
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+function drawStick(st, i) {
+  const def = STICK_DEFS[i];
+  const { p0, p1 } = st;
+  const isDraggedStick = drag && drag.si === i;
+
+  // ── Shadow ──
+  ctx.save();
+  ctx.shadowColor   = 'rgba(0,0,0,.20)';
+  ctx.shadowBlur    = isDraggedStick ? 16 : 8;
+  ctx.shadowOffsetY = isDraggedStick ? 5  : 3;
+  ctx.strokeStyle   = def.col;
+  ctx.lineWidth     = STICK_W;
+  ctx.lineCap       = 'round';
+  ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
+  ctx.restore();
+
+  // ── Stick body — slightly darker underside ──
+  ctx.strokeStyle = def.col2; ctx.lineWidth = STICK_W + 2; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(p0.x+1, p0.y+2); ctx.lineTo(p1.x+1, p1.y+2); ctx.stroke();
+
+  // ── Main colour ──
+  ctx.strokeStyle = def.col; ctx.lineWidth = STICK_W; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
+
+  // ── Highlight stripe (perpendicular offset, lighter) ──
+  const ang = Math.atan2(p1.y-p0.y, p1.x-p0.x);
+  const nx  = -Math.sin(ang) * 3, ny = Math.cos(ang) * 3;
+  ctx.strokeStyle = 'rgba(255,255,255,.30)'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(p0.x+nx, p0.y+ny); ctx.lineTo(p1.x+nx, p1.y+ny); ctx.stroke();
+
+  // ── Length label ──
+  const mx  = (p0.x+p1.x)/2, my = (p0.y+p1.y)/2;
+  const len = dist(p0,p1) / ppu();
+  ctx.save();
+  ctx.translate(mx,my); ctx.rotate(ang);
+  ctx.fillStyle = 'rgba(253,250,244,.9)';
+  ctx.beginPath(); ctx.roundRect(-15,-10,30,14,4); ctx.fill();
+  ctx.fillStyle = def.col2;
+  ctx.font = '600 11px "DM Mono",monospace';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(len.toFixed(1),0,-3);
+  ctx.restore();
+
+  // ── Both endpoints ──
+  drawEndpoint(p0, def, drag && drag.si===i && drag.type==='p0');
+  drawEndpoint(p1, def, drag && drag.si===i && drag.type==='p1');
+}
+
+function drawEndpoint(pt, def, active) {
+  const r = active ? EP_R + 3 : EP_R;
+  // Outer ring affordance
+  ctx.beginPath(); ctx.arc(pt.x, pt.y, r + 6, 0, Math.PI*2);
+  ctx.strokeStyle = active ? def.col : def.ring;
+  ctx.lineWidth   = active ? 1.5    : 1;
+  ctx.setLineDash([3,3]); ctx.stroke(); ctx.setLineDash([]);
+  // Fill
+  ctx.beginPath(); ctx.arc(pt.x, pt.y, r, 0, Math.PI*2);
+  ctx.fillStyle   = 'white'; ctx.fill();
+  ctx.strokeStyle = def.col; ctx.lineWidth = active ? 3 : 2.5; ctx.stroke();
+  // Centre dot
+  ctx.beginPath(); ctx.arc(pt.x, pt.y, 3, 0, Math.PI*2);
+  ctx.fillStyle = def.col; ctx.fill();
+}
+
+function drawFilledTriangle(tri) {
+  ctx.beginPath();
+  ctx.moveTo(tri.v0.x, tri.v0.y);
+  ctx.lineTo(tri.v1.x, tri.v1.y);
+  ctx.lineTo(tri.v2.x, tri.v2.y);
+  ctx.closePath();
+  ctx.fillStyle   = 'rgba(27,120,64,.12)'; ctx.fill();
+  ctx.strokeStyle = 'rgba(27,120,64,.45)'; ctx.lineWidth = 2; ctx.setLineDash([]); ctx.stroke();
+}
+
+// ── TRIANGLE DETECTION ───────────────────────────────────────────────────────
+// A triangle is formed when each stick's endpoints connect to the other two sticks
+// in a cycle: A[i]≈B[j] AND A[1-i]≈C[k] AND B[1-j]≈C[1-k]
+// Returns { formed:bool, v0,v1,v2 } (vertices = midpoints of joined pairs)
+
+function findTriangle() {
+  const P = sticks.map(s => [s.p0, s.p1]);
+  for (let i = 0; i < 2; i++) {
+    for (let j = 0; j < 2; j++) {
+      for (let k = 0; k < 2; k++) {
+        const d0 = dist(P[0][i],   P[1][j]);
+        const d1 = dist(P[0][1-i], P[2][k]);
+        const d2 = dist(P[1][1-j], P[2][1-k]);
+        if (d0 < CLOSE_PX && d1 < CLOSE_PX && d2 < CLOSE_PX) {
+          return {
+            formed: true,
+            v0: mid(P[0][i],   P[1][j]),
+            v1: mid(P[0][1-i], P[2][k]),
+            v2: mid(P[1][1-j], P[2][1-k]),
+          };
+        }
+      }
+    }
+  }
+  return { formed: false };
+}
+
+// Count how many joints are "near" (for progress feedback)
+function countNearJoints() {
+  const P = sticks.map(s => [s.p0, s.p1]);
+  let best = 0;
+  for (let i = 0; i < 2; i++) {
+    for (let j = 0; j < 2; j++) {
+      for (let k = 0; k < 2; k++) {
+        let n = 0;
+        if (dist(P[0][i],   P[1][j])   < SNAP_PX) n++;
+        if (dist(P[0][1-i], P[2][k])   < SNAP_PX) n++;
+        if (dist(P[1][1-j], P[2][1-k]) < SNAP_PX) n++;
+        if (n > best) best = n;
+      }
+    }
+  }
+  return best;
+}
+
+function canForm() {
+  const [a,b,c] = sLen;
+  return a+b>c && a+c>b && b+c>a;
+}
+
+// ── VERDICT ──────────────────────────────────────────────────────────────────
+function setVerdict(state) {
+  const el = document.getElementById('verdict');
+  const map = {
+    idle:  ['Drag the sticks — try to close all three ends', ''],
+    try:   ['Keep going — can you get all three tips to meet?', ''],
+    close: ['So close! One more…', 'close'],
+    ok:    ['Triangle formed! ✓', 'ok'],
+    no:    ['The ends can\'t all meet — these lengths won\'t close', 'no'],
+  };
+  const [txt, cls] = map[state] || map.idle;
+  el.textContent = txt;
+  el.className   = 'verdict' + (cls ? ' '+cls : '');
+}
+
+function updateVerdict() {
+  const tri = findTriangle();
+  if (tri.formed) {
+    setVerdict('ok');
+    if (!successShown) { successShown = true; }
+    return;
+  }
+  successShown = false;
+  if (!anyMoved) { setVerdict('idle'); return; }
+  const near = countNearJoints();
+  if (!canForm()) { setVerdict('no'); return; }
+  if (near >= 2)   setVerdict('close');
+  else if (near === 1) setVerdict('try');
+  else             setVerdict('try');
+}
+
+// ── HIT DETECTION ────────────────────────────────────────────────────────────
+function hitTest(pt) {
+  // Check sticks in reverse order (top-most first)
+  for (let i = sticks.length-1; i >= 0; i--) {
+    const st = sticks[i];
+    if (dist(pt, st.p0) < HIT_EP)
+      return { si:i, type:'p0', pivot:st.p1, lenPx:dist(st.p0,st.p1) };
+    if (dist(pt, st.p1) < HIT_EP)
+      return { si:i, type:'p1', pivot:st.p0, lenPx:dist(st.p0,st.p1) };
+    if (distToSeg(pt, st.p0, st.p1) < HIT_BODY)
+      return { si:i, type:'body',
+        off0:{ x:pt.x-st.p0.x, y:pt.y-st.p0.y },
+        off1:{ x:pt.x-st.p1.x, y:pt.y-st.p1.y } };
+  }
+  return null;
+}
+
+// ── DRAG ─────────────────────────────────────────────────────────────────────
+function startDrag(e) {
+  e.preventDefault();
+  const pt = evPt(e);
+  const hit = hitTest(pt);
+  if (!hit) return;
+  drag = hit;
+  anyMoved = true;
+  cvs.style.cursor = 'grabbing';
+}
+
+function doDrag(e) {
+  if (!drag) return;
+  e.preventDefault();
+  const pt = evPt(e);
+  const st = sticks[drag.si];
+
+  if (drag.type === 'body') {
+    // Translate whole stick, keep length and angle
+    st.p0 = { x: pt.x - drag.off0.x, y: pt.y - drag.off0.y };
+    st.p1 = { x: pt.x - drag.off1.x, y: pt.y - drag.off1.y };
+  } else {
+    // Rotate around pivot: move free end to cursor, constrained to circle of radius lenPx
+    const ang = Math.atan2(pt.y - drag.pivot.y, pt.x - drag.pivot.x);
+    const free = { x: drag.pivot.x + Math.cos(ang)*drag.lenPx, y: drag.pivot.y + Math.sin(ang)*drag.lenPx };
+    if (drag.type === 'p0') { st.p0 = free; st.p1 = drag.pivot; }
+    else                    { st.p1 = free; st.p0 = drag.pivot; }
+  }
+
+  draw();
+  updateVerdict();
+}
+
+function endDrag() {
+  drag = null;
+  cvs.style.cursor = 'default';
+}
+
+cvs.addEventListener('mousedown',  startDrag);
+window.addEventListener('mousemove', doDrag);
+window.addEventListener('mouseup',   endDrag);
+cvs.addEventListener('touchstart', startDrag, { passive:false });
+window.addEventListener('touchmove',  doDrag,   { passive:false });
+window.addEventListener('touchend',   endDrag);
+
+cvs.addEventListener('mousemove', e => {
+  if (drag) return;
+  const pt  = evPt(e);
+  const hit = hitTest(pt);
+  if (!hit)             cvs.style.cursor = 'default';
+  else if (hit.type === 'body') cvs.style.cursor = 'grab';
+  else                  cvs.style.cursor = 'crosshair';
+});
+
+// ── SLIDERS ──────────────────────────────────────────────────────────────────
+const SL_MIN = 1, SL_MAX = 12;
+
+function updateSliderFill(id) {
+  const sl  = document.getElementById('sl-'+id);
+  const pct = ((+sl.value - SL_MIN) / (SL_MAX - SL_MIN) * 100).toFixed(1)+'%';
+  sl.style.setProperty('--pct', pct);
+}
+
+['a','b','c'].forEach((id,i) => {
+  updateSliderFill(id);
+  document.getElementById('sl-'+id).addEventListener('input', function() {
+    const val = +this.value;
+    sLen[i] = val;
+    document.getElementById('val-'+id).textContent = val%1===0 ? val : val.toFixed(1);
+    updateSliderFill(id);
+    // Keep direction, update length
+    const st  = sticks[i];
+    const dx  = st.p1.x - st.p0.x, dy = st.p1.y - st.p0.y;
+    const ang = Math.hypot(dx,dy) < 1 ? 0 : Math.atan2(dy,dx);
+    const len = val * ppu();
+    st.p1 = { x: st.p0.x + Math.cos(ang)*len, y: st.p0.y + Math.sin(ang)*len };
+    successShown = false;
+    draw(); updateVerdict();
+  });
+});
+
+// ── LOCK ─────────────────────────────────────────────────────────────────────
+function toggleLock(id) {
+  const i = {a:0,b:1,c:2}[id];
+  locks[i] = !locks[i];
+  const btn = document.getElementById('lock-'+id);
+  btn.classList.toggle('locked', locks[i]);
+  btn.textContent = locks[i] ? '🔒' : '🔓';
+  document.getElementById('sl-'+id).disabled = locks[i];
+}
+
+// ── TOGGLES ──────────────────────────────────────────────────────────────────
+function toggleCircles() {
+  showCircles = !showCircles;
+  document.getElementById('tsw-c').classList.toggle('on', showCircles);
+  draw();
+}
+function toggleGrid() {
+  showGrid = !showGrid;
+  document.getElementById('tsw-g').classList.toggle('on', showGrid);
+  draw();
+}
+
+// ── PRESETS ──────────────────────────────────────────────────────────────────
+function applyPreset(a, b, c) {
+  sLen = [a,b,c];
+  ['a','b','c'].forEach((id,i) => {
+    const sl = document.getElementById('sl-'+id);
+    sl.value = sLen[i];
+    document.getElementById('val-'+id).textContent = sLen[i];
+    updateSliderFill(id);
+  });
+  layoutSticks();
+  draw(); setVerdict('idle');
+}
+
+// ── RESIZE ───────────────────────────────────────────────────────────────────
+function resize() {
+  const area = document.getElementById('canvas-area');
+  const hintH = area.querySelector('.hint-bar').offsetHeight;
+  const W2 = area.clientWidth  || 700;
+  const H2 = Math.max(250, (area.clientHeight || 500) - hintH);
+  const prevW = CW() || W2, prevH = CH() || H2;
+  cvs.style.width  = W2+'px'; cvs.style.height = H2+'px';
+  cvs.width  = W2*PR;         cvs.height = H2*PR;
+  ctx.resetTransform(); ctx.scale(PR,PR);
+  // Scale existing positions proportionally
+  const sx = W2/prevW, sy = H2/prevH;
+  sticks.forEach(st => {
+    st.p0.x *= sx; st.p0.y *= sy;
+    st.p1.x *= sx; st.p1.y *= sy;
+  });
+  // If no meaningful scale, just layout
+  if (Math.abs(sx-1) > 0.01 || Math.abs(sy-1) > 0.01) {
+    if (!anyMoved) layoutSticks();
+  }
+  draw();
+}
+let rsT; window.addEventListener('resize', () => { clearTimeout(rsT); rsT=setTimeout(resize,60); });
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function dist(a,b)  { return Math.hypot(a.x-b.x, a.y-b.y); }
+function mid(a,b)   { return { x:(a.x+b.x)/2, y:(a.y+b.y)/2 }; }
+
+function distToSeg(p, a, b) {
+  const dx=b.x-a.x, dy=b.y-a.y, len2=dx*dx+dy*dy;
+  if (len2<1) return dist(p,a);
+  let t = ((p.x-a.x)*dx+(p.y-a.y)*dy)/len2;
+  t = Math.max(0.1, Math.min(0.9, t)); // exclude endpoints (they have their own zone)
+  return dist(p, { x:a.x+t*dx, y:a.y+t*dy });
+}
+
+function evPt(e) {
+  const rc  = cvs.getBoundingClientRect();
+  const src = e.touches ? e.touches[0] : e;
+  return {
+    x: (src.clientX-rc.left) * (cvs.width/PR) / rc.width,
+    y: (src.clientY-rc.top)  * (cvs.height/PR) / rc.height,
+  };
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+resize();
+</script>
+</body>
+</html>
