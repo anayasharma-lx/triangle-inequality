@@ -8,11 +8,10 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --paper:#fdfaf4;--paper2:#f5efe3;
+  --paper:#fdfaf4;
   --ink:#1f1b17;--ink2:#5d5348;--ink3:#9a8d7d;
   --rule:#ddd3c4;
   --red:#c45743;--blue:#3b72cf;--green:#2f8f53;
-  --red-t:rgba(196,87,67,.11);--green-t:rgba(47,143,83,.12);
   --sans:'DM Sans',sans-serif;--mono:'DM Mono',monospace;--serif:'Fraunces',serif
 }
 html,body{width:100%;height:100%;overflow:hidden;background:var(--paper);font-family:var(--sans);color:var(--ink)}
@@ -30,8 +29,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--paper);font-fa
   background:linear-gradient(to bottom,rgba(255,255,255,.55) 0%,transparent 30%);
 }
 .sb-hdr{
-  padding:22px 20px 17px;
-  border-bottom:1px solid var(--rule);
+  padding:22px 20px 17px;border-bottom:1px solid var(--rule);
   position:relative;z-index:2;
 }
 .sb-eyebrow{
@@ -68,6 +66,28 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--paper);font-fa
 .val{flex:1;font-family:var(--mono);font-size:24px;line-height:1;letter-spacing:-.02em;font-weight:500}
 .unit{font-size:9.5px;color:var(--ink3);font-family:var(--mono);letter-spacing:.05em}
 
+/*
+  Circle-toggle button (●) per arm.
+  Filled + opaque  = reach circle ON.
+  Outline + faded  = reach circle OFF.
+  Rotation from the colored end is always available regardless of toggle.
+*/
+.circ-btn{
+  width:20px;height:20px;border-radius:50%;
+  border:2px solid currentColor;
+  background:transparent;
+  cursor:pointer;flex-shrink:0;padding:0;
+  transition:background .18s,opacity .2s;
+  opacity:.30;
+}
+.circ-btn.on{ background:currentColor; opacity:.78; }
+.circ-btn.on::after{
+  content:'';display:block;
+  width:7px;height:7px;border-radius:50%;
+  background:rgba(255,255,255,.55);
+  margin:4.5px auto 0;
+}
+
 /* ── sliders ── */
 .sl{
   width:100%;appearance:none;height:4px;border-radius:999px;
@@ -85,13 +105,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--paper);font-fa
 .sla{--fc:var(--red)}.slb{--fc:var(--blue)}.slc{--fc:var(--green)}
 
 .div{height:1px;background:linear-gradient(to right,transparent,var(--rule) 25%,var(--rule) 75%,transparent)}
-
-/* ── toggle ── */
-.toggle{display:flex;align-items:center;gap:10px;cursor:pointer;padding:2px;user-select:none}
-.ts{width:34px;height:19px;border-radius:999px;background:#ccc4b8;position:relative;transition:.2s;flex-shrink:0}
-.ts::after{content:'';position:absolute;width:13px;height:13px;border-radius:50%;background:white;top:3px;left:3px;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
-.ts.on{background:var(--blue)}.ts.on::after{left:18px}
-.tlbl{font-size:12px;color:var(--ink2)}
 
 /* ── verdict ── */
 .verdict{
@@ -121,17 +134,26 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--paper);font-fa
 }
 .reset:hover{background:white;color:var(--ink)}
 
-/* ── main ── */
+/* ── canvas area ── */
 .main{display:flex;flex-direction:column;overflow:hidden}
 .hint{
-  padding:10px 20px;border-bottom:1px solid var(--rule);
-  font-size:12px;color:var(--ink2);
+  padding:9px 18px;border-bottom:1px solid var(--rule);
+  font-size:11.5px;color:var(--ink2);
   background:rgba(255,255,255,.75);backdrop-filter:blur(10px);z-index:2;
-  display:flex;align-items:center;gap:16px;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
 }
 .htag{display:inline-flex;align-items:center;gap:5px}
 .htag strong{font-weight:600;color:var(--ink)}
-.hsep{opacity:.25;font-size:14px}
+/* black dot legend */
+.hpin{
+  display:inline-flex;align-items:center;gap:6px;
+}
+.hpin-dot{
+  width:10px;height:10px;border-radius:50%;flex-shrink:0;
+}
+.hpin-dot.black{background:#1a1510;}
+.hpin-dot.color{background:white;border:2px solid var(--ink2);box-sizing:border-box;}
+.hsep{opacity:.22}
 #cvs{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
 #cvs:active{cursor:grabbing}
 
@@ -161,6 +183,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--paper);font-fa
           <div class="lbl">Side a</div>
           <div class="val" id="va">5</div>
           <div class="unit">units</div>
+          <button class="circ-btn on" id="cb0" onclick="toggleCircle(0)"
+                  style="color:var(--red)" title="Toggle reach circle"></button>
         </div>
         <input id="sa" class="sl sla" type="range" min="1" max="12" step="0.5" value="5">
       </div>
@@ -171,6 +195,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--paper);font-fa
           <div class="lbl">Side b</div>
           <div class="val" id="vb">5</div>
           <div class="unit">units</div>
+          <button class="circ-btn on" id="cb1" onclick="toggleCircle(1)"
+                  style="color:var(--blue)" title="Toggle reach circle"></button>
         </div>
         <input id="sb" class="sl slb" type="range" min="1" max="12" step="0.5" value="5">
       </div>
@@ -181,19 +207,15 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--paper);font-fa
           <div class="lbl">Side c</div>
           <div class="val" id="vc">5</div>
           <div class="unit">units</div>
+          <button class="circ-btn on" id="cb2" onclick="toggleCircle(2)"
+                  style="color:var(--green)" title="Toggle reach circle"></button>
         </div>
         <input id="sc" class="sl slc" type="range" min="1" max="12" step="0.5" value="5">
       </div>
 
       <div class="div"></div>
 
-      <div class="toggle" onclick="toggleCircles()">
-        <div class="ts" id="ts"></div>
-        <div class="tlbl">Show reach circles</div>
-      </div>
-
       <div class="verdict" id="verdict">Arrange the sticks to form a triangle</div>
-
       <button class="reset" onclick="resetAll()">↺  Reset positions</button>
 
     </div>
@@ -201,11 +223,15 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--paper);font-fa
 
   <div class="main">
     <div class="hint">
-      <span class="htag">Drag a <strong>tip</strong> to rotate</span>
+      <span class="hpin">
+        <span class="hpin-dot black"></span>Fixed pivot — drag to <strong>move</strong>
+      </span>
       <span class="hsep">·</span>
-      <span class="htag">Drag the <strong>middle</strong> to move</span>
+      <span class="hpin">
+        <span class="hpin-dot color"></span>Free end — drag to <strong>rotate</strong>
+      </span>
       <span class="hsep">·</span>
-      <span class="htag">Circles show each arm's <strong>reach</strong></span>
+      <span class="htag"><strong>●</strong> toggles reach circle</span>
     </div>
     <canvas id="cvs"></canvas>
   </div>
@@ -216,21 +242,29 @@ const cvs=document.getElementById('cvs');
 const ctx=cvs.getContext('2d');
 const DPR=Math.min(devicePixelRatio||1,2);
 
-const STICK_W=6;   // stroke width
-const END_R=7;     // endpoint circle radius
-const HIT=22;
-const BODY_HIT=14;
-const CLOSE=18;
+/*
+  p0 = BLACK fixed pivot.
+       • Reach circle centred here.
+       • Cannot be dragged to rotate (dragging near p0 triggers body move).
+       • Moves with the arm when the arm body is dragged.
+  p1 = COLORED free end.
+       • Dragging it rotates the arm around p0.
+       • Always rotatable (circle toggle does not affect this).
+*/
 
+const STICK_W=6, END_R=7, HIT=22, BODY_HIT=16, CLOSE=18;
 const cols=['#c45743','#3b72cf','#2f8f53'];
 
-let lens=[5,5,5], sticks=[], drag=null, showCircles=true;
+let lens=[5,5,5];
+let sticks=[];
+let drag=null;
+let circleVisible=[true,true,true];  /* per-arm circle toggle */
 
 function ppu(){return Math.max(30,Math.min(54,W()/18))}
 function W(){return cvs.width/DPR}
 function H(){return cvs.height/DPR}
 
-/* ─── layout ─── */
+/* ─── reset ─── */
 
 function resetAll(){
   const s=ppu();
@@ -242,28 +276,20 @@ function resetAll(){
   draw();updateVerdict();
 }
 
-/* ─── drawing ─── */
+/* ─── draw ─── */
 
 function draw(){
   ctx.clearRect(0,0,W(),H());
   drawBG();
+  drawConstruction();          /* circles sit behind sticks */
 
-  /* reach circles drawn FIRST (behind sticks) */
-  if(showCircles) drawConstruction();
-
-  /* triangle fill when sticks snap closed */
   const tri=triangle();
   if(tri.ok){
     ctx.beginPath();
-    ctx.moveTo(tri.a.x,tri.a.y);
-    ctx.lineTo(tri.b.x,tri.b.y);
-    ctx.lineTo(tri.c.x,tri.c.y);
+    ctx.moveTo(tri.a.x,tri.a.y);ctx.lineTo(tri.b.x,tri.b.y);ctx.lineTo(tri.c.x,tri.c.y);
     ctx.closePath();
-    ctx.fillStyle='rgba(47,143,83,.16)';
-    ctx.fill();
-    ctx.strokeStyle='rgba(47,143,83,.50)';
-    ctx.lineWidth=2;
-    ctx.stroke();
+    ctx.fillStyle='rgba(47,143,83,.16)';ctx.fill();
+    ctx.strokeStyle='rgba(47,143,83,.50)';ctx.lineWidth=2;ctx.stroke();
   }
 
   sticks.forEach((s,i)=>drawStick(s,i));
@@ -272,100 +298,82 @@ function draw(){
 function drawBG(){
   ctx.fillStyle='#fdfaf4';
   ctx.fillRect(0,0,W(),H());
-
-  /* warm dot grid */
   ctx.fillStyle='rgba(140,115,78,.17)';
-  for(let x=32;x<W();x+=32){
+  for(let x=32;x<W();x+=32)
     for(let y=32;y<H();y+=32){
       ctx.beginPath();ctx.arc(x,y,1.2,0,Math.PI*2);ctx.fill();
     }
-  }
-
-  /* very subtle edge vignette */
   const vg=ctx.createRadialGradient(W()/2,H()/2,Math.min(W(),H())*.28,W()/2,H()/2,Math.max(W(),H())*.82);
-  vg.addColorStop(0,'rgba(0,0,0,0)');
-  vg.addColorStop(1,'rgba(20,12,4,.05)');
-  ctx.fillStyle=vg;
-  ctx.fillRect(0,0,W(),H());
+  vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(20,12,4,.05)');
+  ctx.fillStyle=vg;ctx.fillRect(0,0,W(),H());
 }
 
 /*
-  Reach circles — each anchored at sticks[i].p0, radius = stick length.
-  Rules:
-  ① Near-same pivot (centres < NEAR px apart) → merge into ONE neutral thin solid circle
-     per unique radius. Multiple dashes at the same spot disappear entirely.
-  ② Circles from different pivots that overlap geometrically → thin solid colored lines
-     (dashes disappear, keeping the visual clean).
-  ③ Isolated circles (no overlap with anything) → normal dashed colored circles.
+  Circle rendering rules (visible circles only):
+  ① Near-same pivot (< NEAR px) → ONE neutral thin solid circle per unique radius.
+  ② Geometrically overlapping (different pivots) → thin solid colored line.
+  ③ Isolated → normal dashed colored circle with subtle fill.
 */
 function drawConstruction(){
-  const rs  = lens.map(l => l * ppu());
-  const N   = sticks.length;
-  const NEAR = 26; // px — "same pivot" threshold
+  const rs=lens.map(l=>l*ppu());
+  const N=sticks.length;
+  const NEAR=26;
 
-  /* ── pass 1: mark circles that overlap with ANY other ── */
-  const overlaps = new Array(N).fill(false);
+  /* overlap check among visible circles */
+  const overlaps=new Array(N).fill(false);
   for(let i=0;i<N;i++){
+    if(!circleVisible[i]) continue;
     for(let j=i+1;j<N;j++){
-      if(dist(sticks[i].p0, sticks[j].p0) < rs[i]+rs[j]){
-        overlaps[i]=true; overlaps[j]=true;
+      if(!circleVisible[j]) continue;
+      if(dist(sticks[i].p0,sticks[j].p0)<rs[i]+rs[j]){
+        overlaps[i]=true;overlaps[j]=true;
       }
     }
   }
 
-  /* ── pass 2: group near-same-centre circles, then draw ── */
-  const drawn = new Set();
-
+  const drawn=new Set();
   for(let i=0;i<N;i++){
-    if(drawn.has(i)) continue;
+    if(!circleVisible[i]||drawn.has(i)) continue;
 
-    /* build group of sticks sharing roughly the same p0 */
     const grp=[i];
     for(let j=i+1;j<N;j++){
-      if(!drawn.has(j) && dist(sticks[i].p0, sticks[j].p0) < NEAR){
+      if(circleVisible[j]&&!drawn.has(j)&&dist(sticks[i].p0,sticks[j].p0)<NEAR)
         grp.push(j);
-      }
     }
     grp.forEach(k=>drawn.add(k));
 
-    if(grp.length > 1){
-      /* ① Multiple sticks at same pivot → ONE neutral thin solid circle per unique radius */
-      const cx = grp.reduce((s,k)=>s+sticks[k].p0.x, 0)/grp.length;
-      const cy = grp.reduce((s,k)=>s+sticks[k].p0.y, 0)/grp.length;
-      const seenR = new Set();
+    if(grp.length>1){
+      /* ① same pivot → one neutral thin solid circle per unique radius */
+      const cx=grp.reduce((s,k)=>s+sticks[k].p0.x,0)/grp.length;
+      const cy=grp.reduce((s,k)=>s+sticks[k].p0.y,0)/grp.length;
+      const seenR=new Set();
       grp.forEach(k=>{
-        const rk = Math.round(rs[k]);
+        const rk=Math.round(rs[k]);
         if(seenR.has(rk)) return;
         seenR.add(rk);
         ctx.beginPath();
-        ctx.arc(cx, cy, rs[k], 0, Math.PI*2);
+        ctx.arc(cx,cy,rs[k],0,Math.PI*2);
         ctx.strokeStyle='rgba(50,40,30,.30)';
         ctx.lineWidth=1.0;
         ctx.stroke();
       });
 
     } else if(overlaps[i]){
-      /* ② Overlapping circle (different centre) → thin solid colored line, no fill */
-      const c=cols[i];
+      /* ② overlapping, different pivots → thin solid colored */
       ctx.beginPath();
-      ctx.arc(sticks[i].p0.x, sticks[i].p0.y, rs[i], 0, Math.PI*2);
-      ctx.strokeStyle=c+'aa';
+      ctx.arc(sticks[i].p0.x,sticks[i].p0.y,rs[i],0,Math.PI*2);
+      ctx.strokeStyle=cols[i]+'aa';
       ctx.lineWidth=1.0;
       ctx.stroke();
 
     } else {
-      /* ③ Isolated → dashed colored circle with subtle fill */
-      const st=sticks[i], r=rs[i], c=cols[i];
-      ctx.beginPath();
-      ctx.arc(st.p0.x, st.p0.y, r, 0, Math.PI*2);
-      ctx.fillStyle=c+'0e';
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(st.p0.x, st.p0.y, r, 0, Math.PI*2);
+      /* ③ isolated → dashed colored */
+      const st=sticks[i],r=rs[i],c=cols[i];
+      ctx.beginPath();ctx.arc(st.p0.x,st.p0.y,r,0,Math.PI*2);
+      ctx.fillStyle=c+'0e';ctx.fill();
+      ctx.beginPath();ctx.arc(st.p0.x,st.p0.y,r,0,Math.PI*2);
       ctx.setLineDash([10,6]);
-      ctx.strokeStyle=c+'99';
-      ctx.lineWidth=1.8;
-      ctx.stroke();
+      ctx.strokeStyle=c+'99';ctx.lineWidth=1.8;ctx.stroke();
       ctx.setLineDash([]);
     }
   }
@@ -377,44 +385,47 @@ function drawStick(st,i){
   const dx=p1.x-p0.x, dy=p1.y-p0.y;
   const len=Math.hypot(dx,dy)||1;
 
-  /* drop shadow + body */
+  /* ── body with shadow ── */
   ctx.save();
   ctx.shadowColor='rgba(0,0,0,.20)';
-  ctx.shadowBlur=10;
-  ctx.shadowOffsetY=4;
+  ctx.shadowBlur=10;ctx.shadowOffsetY=4;
   ctx.beginPath();
-  ctx.moveTo(p0.x,p0.y);
-  ctx.lineTo(p1.x,p1.y);
-  ctx.strokeStyle=c;
-  ctx.lineWidth=STICK_W;
-  ctx.lineCap='round';
-  ctx.stroke();
+  ctx.moveTo(p0.x,p0.y);ctx.lineTo(p1.x,p1.y);
+  ctx.strokeStyle=c;ctx.lineWidth=STICK_W;ctx.lineCap='round';ctx.stroke();
   ctx.restore();
 
-  /* endpoint circles */
-  [p0,p1].forEach(p=>{
-    ctx.beginPath();
-    ctx.arc(p.x,p.y,END_R,0,Math.PI*2);
-    ctx.fillStyle='white';
-    ctx.fill();
-    ctx.strokeStyle=c;
-    ctx.lineWidth=2;
-    ctx.stroke();
-  });
+  /* ── p0 — black fixed pivot ── */
+  /* outer white ring */
+  ctx.beginPath();ctx.arc(p0.x,p0.y,END_R+3,0,Math.PI*2);
+  ctx.fillStyle='rgba(255,255,255,.92)';ctx.fill();
+  /* black fill */
+  ctx.beginPath();ctx.arc(p0.x,p0.y,END_R+1,0,Math.PI*2);
+  ctx.fillStyle='#1a1510';ctx.fill();
+  /* small white center dot — signals "pivot" */
+  ctx.beginPath();ctx.arc(p0.x,p0.y,2.8,0,Math.PI*2);
+  ctx.fillStyle='rgba(255,255,255,.70)';ctx.fill();
 
-  /* length label — plain text, perpendicular offset, white halo for readability */
+  /* ── p1 — colored free end ── */
+  /* outer white ring */
+  ctx.beginPath();ctx.arc(p1.x,p1.y,END_R+3,0,Math.PI*2);
+  ctx.fillStyle='rgba(255,255,255,.92)';ctx.fill();
+  /* colored fill */
+  ctx.beginPath();ctx.arc(p1.x,p1.y,END_R+1,0,Math.PI*2);
+  ctx.fillStyle=c;ctx.fill();
+  /* inner white ring to distinguish from pivot */
+  ctx.beginPath();ctx.arc(p1.x,p1.y,END_R-2,0,Math.PI*2);
+  ctx.strokeStyle='rgba(255,255,255,.55)';ctx.lineWidth=2;ctx.stroke();
+
+  /* ── length label ── */
   const m=mid(p0,p1);
   let nx=-dy/len, ny=dx/len;
-  if(ny>0){nx=-nx;ny=-ny;}   /* always above */
+  if(ny>0){nx=-nx;ny=-ny;}
   const lx=m.x+nx*20, ly=m.y+ny*20;
-
   ctx.save();
   ctx.font='600 14px "DM Sans"';
-  ctx.textAlign='center';
-  ctx.textBaseline='middle';
+  ctx.textAlign='center';ctx.textBaseline='middle';
   ctx.strokeStyle='rgba(253,250,244,.96)';
-  ctx.lineWidth=5;
-  ctx.lineJoin='round';
+  ctx.lineWidth=5;ctx.lineJoin='round';
   ctx.strokeText(lens[i],lx,ly);
   ctx.fillStyle='#1a1510';
   ctx.fillText(lens[i],lx,ly);
@@ -457,8 +468,18 @@ function canForm(){const[a,b,c]=lens;return a+b>c&&a+c>b&&b+c>a}
 function hit(pt){
   for(let i=sticks.length-1;i>=0;i--){
     const s=sticks[i];
-    if(dist(pt,s.p0)<HIT) return{i,type:'p0',pivot:s.p1,len:dist(s.p0,s.p1)};
-    if(dist(pt,s.p1)<HIT) return{i,type:'p1',pivot:s.p0,len:dist(s.p0,s.p1)};
+
+    /*
+      p0 is the BLACK pivot — it NEVER triggers a rotation hit.
+      Clicking near p0 falls through to the body-drag check below.
+
+      p1 is the COLORED free end — always rotatable (sweeps around p0).
+      Circle toggle does NOT affect rotation ability.
+    */
+    if(dist(pt,s.p1)<HIT)
+      return{i,type:'p1',pivot:s.p0,len:dist(s.p0,s.p1)};
+
+    /* body drag — always available, and catches clicks near p0 too */
     if(segDist(pt,s.p0,s.p1)<BODY_HIT)
       return{i,type:'body',
         o0:{x:pt.x-s.p0.x,y:pt.y-s.p0.y},
@@ -468,27 +489,35 @@ function hit(pt){
 }
 
 function start(e){const p=ptE(e),h=hit(p);if(h)drag=h}
+
 function move(e){
   if(!drag)return;
   e.preventDefault();
   const p=ptE(e),s=sticks[drag.i];
   if(drag.type==='body'){
+    /* move entire arm — p0 stays fixed relative to grab point */
     s.p0={x:p.x-drag.o0.x,y:p.y-drag.o0.y};
     s.p1={x:p.x-drag.o1.x,y:p.y-drag.o1.y};
   }else{
+    /* p1 drag — rotate around the fixed pivot p0 */
     const a=Math.atan2(p.y-drag.pivot.y,p.x-drag.pivot.x);
-    const free={x:drag.pivot.x+Math.cos(a)*drag.len,y:drag.pivot.y+Math.sin(a)*drag.len};
-    if(drag.type==='p0'){s.p0=free;s.p1=drag.pivot}else{s.p1=free;s.p0=drag.pivot}
+    s.p1={x:drag.pivot.x+Math.cos(a)*drag.len,y:drag.pivot.y+Math.sin(a)*drag.len};
+    s.p0=drag.pivot;  /* keep p0 exactly where it was */
   }
   draw();updateVerdict();
 }
+
 function end(){drag=null}
 
-function toggleCircles(){
-  showCircles=!showCircles;
-  document.getElementById('ts').classList.toggle('on',showCircles);
+/* ─── circle toggle ─── */
+
+function toggleCircle(i){
+  circleVisible[i]=!circleVisible[i];
+  document.getElementById('cb'+i).classList.toggle('on',circleVisible[i]);
   draw();
 }
+
+/* ─── sliders ─── */
 
 function fill(id){
   const sl=document.getElementById('s'+id);
@@ -547,7 +576,6 @@ window.addEventListener('touchend',end);
 window.addEventListener('resize',resize);
 
 resize();
-document.getElementById('ts').classList.add('on');
 </script>
 </body>
 </html>
