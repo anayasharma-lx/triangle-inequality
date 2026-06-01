@@ -4,734 +4,550 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Triangle Inequality</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=DM+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --paper:#FDFAF4;--paper2:#F4EFE5;--paper3:#EDE6D8;
-  --ink:#22201A;--ink2:#504840;--ink3:#8C8070;--ink4:#B8B0A0;
-  --rule:#DDD8CE;
-  --ra:#C04030;--rb:#1B5CA0;--rc:#1B7840;
-  --ra2:#98301C;--rb2:#133F78;--rc2:#135C2C;
-  --ra-t:rgba(192,64,48,.10);--rb-t:rgba(27,92,160,.10);--rc-t:rgba(27,120,64,.10);
-  --ra-r:rgba(192,64,48,.30);--rb-r:rgba(27,92,160,.30);--rc-r:rgba(27,120,64,.30);
-  --snap-col:#1B7840;--snap-t:rgba(27,120,64,.15);
-  --sans:'DM Sans',system-ui,sans-serif;
-  --mono:'DM Mono',ui-monospace,monospace;
-  --serif:'Fraunces',Georgia,serif;
+  --paper:#fdfaf4;--paper2:#f5efe3;
+  --ink:#1f1b17;--ink2:#5d5348;--ink3:#9a8d7d;
+  --rule:#ddd3c4;
+  --red:#c45743;--blue:#3b72cf;--green:#2f8f53;
+  --red-t:rgba(196,87,67,.11);--green-t:rgba(47,143,83,.12);
+  --sans:'DM Sans',sans-serif;--mono:'DM Mono',monospace;--serif:'Fraunces',serif
 }
-html,body{width:100%;height:100%;background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden}
-.shell{display:grid;grid-template-columns:260px 1fr;height:100vh}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--paper);font-family:var(--sans);color:var(--ink)}
 
-/* ── SIDEBAR ── */
-.sidebar{background:var(--paper2);border-right:1.5px solid var(--rule);display:flex;flex-direction:column;overflow:hidden}
-.sb-hdr{padding:18px 20px 14px;border-bottom:1.5px solid var(--rule)}
-.sb-chapter{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--ink4);margin-bottom:4px}
-.sb-title{font-family:var(--serif);font-size:21px;font-weight:600;color:var(--ink);line-height:1.1}
-.sb-sub{font-family:var(--serif);font-style:italic;font-size:13px;color:var(--ink3);margin-top:2px}
-.sb-body{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:16px}
+.shell{display:grid;grid-template-columns:252px 1fr;height:100vh}
 
-/* Stick controls */
-.stick-block{display:flex;flex-direction:column;gap:5px}
-.stick-top{display:flex;align-items:center;gap:8px}
-.stick-bar{width:26px;height:7px;border-radius:3.5px;flex-shrink:0}
-.stick-ltr{font-family:var(--mono);font-size:12px;font-weight:600;width:12px}
-.stick-num{font-family:var(--mono);font-size:19px;font-weight:600;color:var(--ink);line-height:1;flex:1}
-.stick-unit{font-family:var(--mono);font-size:11px;color:var(--ink4)}
-
-/* Lock button */
-.lock-btn{width:30px;height:30px;border-radius:7px;border:1.5px solid var(--rule);
-  background:var(--paper);cursor:pointer;display:flex;align-items:center;justify-content:center;
-  font-size:13px;transition:.14s;flex-shrink:0;line-height:1}
-.lock-btn:hover{border-color:var(--ink3)}
-.lock-btn.locked{background:var(--ink);border-color:var(--ink);color:var(--paper);font-size:11px}
-
-/* Slider */
-input[type=range].sl{
-  width:100%;height:4px;-webkit-appearance:none;border-radius:2px;outline:none;
-  cursor:pointer;display:block;transition:opacity .15s;
-  background:linear-gradient(to right,var(--fc) var(--pct,50%),var(--rule) var(--pct,50%));
+/* ── sidebar ── */
+.sidebar{
+  background:linear-gradient(175deg,#f9f4eb 0%,#f1e8d6 100%);
+  border-right:1px solid var(--rule);
+  display:flex;flex-direction:column;overflow:hidden;position:relative;
 }
-input[type=range].sl:disabled{opacity:.3;cursor:not-allowed}
-input[type=range].sl::-webkit-slider-thumb{
-  -webkit-appearance:none;width:18px;height:18px;border-radius:50%;
-  background:var(--fc);border:2.5px solid white;cursor:pointer;
-  box-shadow:0 1px 5px rgba(0,0,0,.22);}
-.sl-a{--fc:var(--ra)}.sl-b{--fc:var(--rb)}.sl-c{--fc:var(--rc)}
-
-/* Divider */
-.sb-div{height:1.5px;background:var(--rule);margin:0 -20px}
-
-/* Toggle switch */
-.tog-group{display:flex;flex-direction:column;gap:8px}
-.tog-sec-lbl{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink4);margin-bottom:1px}
-.tog-row{display:flex;align-items:center;gap:9px;cursor:pointer}
-.tswitch{width:32px;height:18px;border-radius:9px;background:var(--rule);border:none;
-  cursor:pointer;position:relative;flex-shrink:0;transition:background .18s}
-.tswitch.on{background:var(--rb)}
-.tswitch::after{content:'';position:absolute;top:3px;left:3px;width:12px;height:12px;
-  border-radius:50%;background:white;transition:.18s;box-shadow:0 1px 3px rgba(0,0,0,.22)}
-.tswitch.on::after{left:17px}
-.tog-lbl{font-size:13px;font-weight:500;color:var(--ink2)}
-
-/* Presets */
-.preset-sec{display:flex;flex-direction:column;gap:5px}
-.preset-sec-lbl{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink4);margin-bottom:2px}
-.preset-btn{
-  display:flex;align-items:center;padding:8px 10px;border:1.5px solid var(--rule);
-  border-radius:7px;background:var(--paper);cursor:pointer;transition:.13s;
-  font-family:var(--mono);font-size:13px;font-weight:600;color:var(--ink2);gap:6px;
+.sidebar::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(to bottom,rgba(255,255,255,.55) 0%,transparent 30%);
 }
-.preset-btn:hover{border-color:var(--ink3);background:var(--paper3)}
-.pb-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.sb-hdr{
+  padding:22px 20px 17px;
+  border-bottom:1px solid var(--rule);
+  position:relative;z-index:2;
+}
+.sb-eyebrow{
+  display:flex;align-items:center;gap:7px;
+  font-family:var(--mono);font-size:9px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--ink3);margin-bottom:8px;
+}
+.sb-eyebrow::before{content:'';width:14px;height:1.5px;background:currentColor;opacity:.5}
+.sb-title{font-family:var(--serif);font-size:24px;line-height:1.05;letter-spacing:-.03em;font-weight:600}
+.sb-sub{margin-top:5px;color:var(--ink3);font-size:11.5px;font-style:italic}
 
-/* Verdict */
-.verdict-wrap{margin-top:auto;padding-top:12px}
+.sb-body{
+  flex:1;overflow-y:auto;overflow-x:hidden;
+  padding:14px 16px 20px;
+  display:flex;flex-direction:column;gap:10px;
+  position:relative;z-index:1;
+}
+
+/* ── slider blocks ── */
+.block{
+  display:flex;flex-direction:column;gap:9px;
+  padding:12px 13px 11px;border-radius:13px;
+  border:1px solid rgba(0,0,0,.06);
+  background:rgba(255,255,255,.50);
+  transition:box-shadow .18s,transform .18s;
+}
+.block:hover{box-shadow:0 5px 16px rgba(0,0,0,.07);transform:translateY(-1px)}
+.block-a{background:linear-gradient(110deg,rgba(196,87,67,.10) 0%,rgba(255,255,255,.52) 44%)}
+.block-b{background:linear-gradient(110deg,rgba(59,114,207,.10) 0%,rgba(255,255,255,.52) 44%)}
+.block-c{background:linear-gradient(110deg,rgba(47,143,83,.10) 0%,rgba(255,255,255,.52) 44%)}
+.row{display:flex;align-items:center;gap:9px}
+.swatch{width:5px;height:28px;border-radius:999px;flex-shrink:0}
+.lbl{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.08em;color:var(--ink3);text-transform:uppercase}
+.val{flex:1;font-family:var(--mono);font-size:24px;line-height:1;letter-spacing:-.02em;font-weight:500}
+.unit{font-size:9.5px;color:var(--ink3);font-family:var(--mono);letter-spacing:.05em}
+
+/* ── sliders ── */
+.sl{
+  width:100%;appearance:none;height:4px;border-radius:999px;
+  background:linear-gradient(to right,var(--fc) var(--pct),rgba(0,0,0,.11) var(--pct));
+  outline:none;cursor:pointer;
+}
+.sl::-webkit-slider-thumb{
+  appearance:none;width:17px;height:17px;border-radius:50%;
+  border:2.5px solid #fff;background:var(--fc);
+  box-shadow:0 2px 8px rgba(0,0,0,.22),0 0 0 3px rgba(255,255,255,.4);
+  cursor:pointer;transition:transform .12s;
+}
+.sl::-webkit-slider-thumb:hover{transform:scale(1.18)}
+.sl::-moz-range-thumb{width:17px;height:17px;border:2.5px solid #fff;border-radius:50%;background:var(--fc)}
+.sla{--fc:var(--red)}.slb{--fc:var(--blue)}.slc{--fc:var(--green)}
+
+.div{height:1px;background:linear-gradient(to right,transparent,var(--rule) 25%,var(--rule) 75%,transparent)}
+
+/* ── toggle ── */
+.toggle{display:flex;align-items:center;gap:10px;cursor:pointer;padding:2px;user-select:none}
+.ts{width:34px;height:19px;border-radius:999px;background:#ccc4b8;position:relative;transition:.2s;flex-shrink:0}
+.ts::after{content:'';position:absolute;width:13px;height:13px;border-radius:50%;background:white;top:3px;left:3px;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.ts.on{background:var(--blue)}.ts.on::after{left:18px}
+.tlbl{font-size:12px;color:var(--ink2)}
+
+/* ── verdict ── */
 .verdict{
-  padding:11px 13px;border-radius:9px;text-align:center;
-  font-family:var(--serif);font-size:14px;font-weight:600;line-height:1.35;
-  background:var(--paper3);color:var(--ink3);border:1.5px solid var(--rule);
-  transition:all .3s;
+  margin-top:auto;padding:15px 14px;border-radius:13px;
+  border:1.5px solid rgba(0,0,0,.06);
+  background:rgba(255,255,255,.52);
+  text-align:center;font-family:var(--serif);
+  line-height:1.35;font-size:17px;
+  transition:all .25s;
+  box-shadow:0 2px 10px rgba(0,0,0,.04);
 }
-.verdict.ok{background:var(--rc-t);border-color:var(--rc-r);color:var(--rc2)}
-.verdict.no{background:var(--ra-t);border-color:var(--ra-r);color:var(--ra2)}
-.verdict.close{background:rgba(160,120,32,.08);border-color:rgba(160,120,32,.25);color:#7A5A10}
+.verdict.ok{
+  background:rgba(47,143,83,.10);border-color:rgba(47,143,83,.28);
+  color:#185230;transform:scale(1.015);
+  box-shadow:0 5px 22px rgba(47,143,83,.14);
+}
+.verdict.no{
+  background:rgba(196,87,67,.09);border-color:rgba(196,87,67,.22);
+  color:#7a2518;
+}
+.reset{
+  margin-top:10px;width:100%;padding:9px;border-radius:10px;
+  border:1px solid rgba(0,0,0,.07);
+  background:rgba(255,255,255,.42);
+  cursor:pointer;font-weight:600;font-size:12.5px;
+  color:var(--ink2);transition:.15s;
+}
+.reset:hover{background:white;color:var(--ink)}
 
-/* Reset */
-.reset-btn{width:100%;margin-top:7px;padding:8px;border:1.5px solid var(--rule);border-radius:7px;
-  background:transparent;font-family:var(--sans);font-size:12px;font-weight:600;
-  color:var(--ink3);cursor:pointer;transition:.13s}
-.reset-btn:hover{border-color:var(--ink3);color:var(--ink);background:var(--paper3)}
+/* ── main ── */
+.main{display:flex;flex-direction:column;overflow:hidden}
+.hint{
+  padding:10px 20px;border-bottom:1px solid var(--rule);
+  font-size:12px;color:var(--ink2);
+  background:rgba(255,255,255,.75);backdrop-filter:blur(10px);z-index:2;
+  display:flex;align-items:center;gap:16px;
+}
+.htag{display:inline-flex;align-items:center;gap:5px}
+.htag strong{font-weight:600;color:var(--ink)}
+.hsep{opacity:.25;font-size:14px}
+#cvs{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#cvs:active{cursor:grabbing}
 
-/* ── CANVAS AREA ── */
-.canvas-area{display:flex;flex-direction:column;overflow:hidden;position:relative}
-.hint-bar{padding:10px 20px;border-bottom:1.5px solid var(--rule);background:var(--paper);
-  display:flex;align-items:center;gap:8px;flex-shrink:0}
-.hint-txt{font-family:var(--serif);font-style:italic;font-size:13px;color:var(--ink3);line-height:1.4}
-.hint-txt strong{font-style:normal;font-weight:600;color:var(--ink2)}
-#cvs{display:block;width:100%;height:100%;touch-action:none;cursor:default}
-
-@media(max-width:700px){
-  .shell{grid-template-columns:1fr;height:auto}
-  .sidebar{height:auto;border-right:none;border-bottom:1.5px solid var(--rule)}
-  html,body{overflow:auto}
+@media(max-width:760px){
+  html,body{overflow:auto;height:auto}
+  .shell{grid-template-columns:1fr;height:auto;min-height:100vh}
+  .sidebar{border-right:none;border-bottom:1px solid var(--rule)}
+  .main{height:70vh}
 }
 </style>
 </head>
 <body>
 <div class="shell">
 
-  <!-- SIDEBAR -->
   <div class="sidebar">
     <div class="sb-hdr">
-      <div class="sb-chapter">Geometry · Discovery</div>
+      <div class="sb-eyebrow">Geometry · Discovery</div>
       <div class="sb-title">Triangle Inequality</div>
-      <div class="sb-sub">Can three sticks always close into a triangle?</div>
+      <div class="sb-sub">Can these lengths form a triangle?</div>
     </div>
+
     <div class="sb-body">
 
-      <!-- Stick A -->
-      <div class="stick-block">
-        <div class="stick-top">
-          <div class="stick-bar" style="background:var(--ra)"></div>
-          <span class="stick-ltr" style="color:var(--ra)">a</span>
-          <span class="stick-num" id="val-a">5</span>
-          <span class="stick-unit">units</span>
-          <button class="lock-btn" id="lock-a" title="Lock a" onclick="toggleLock('a')">🔓</button>
+      <div class="block block-a">
+        <div class="row">
+          <div class="swatch" style="background:var(--red)"></div>
+          <div class="lbl">Side a</div>
+          <div class="val" id="va">5</div>
+          <div class="unit">units</div>
         </div>
-        <input type="range" class="sl sl-a" id="sl-a" min="1" max="12" value="5" step="0.5"/>
+        <input id="sa" class="sl sla" type="range" min="1" max="12" step="0.5" value="5">
       </div>
 
-      <!-- Stick B -->
-      <div class="stick-block">
-        <div class="stick-top">
-          <div class="stick-bar" style="background:var(--rb)"></div>
-          <span class="stick-ltr" style="color:var(--rb)">b</span>
-          <span class="stick-num" id="val-b">5</span>
-          <span class="stick-unit">units</span>
-          <button class="lock-btn" id="lock-b" title="Lock b" onclick="toggleLock('b')">🔓</button>
+      <div class="block block-b">
+        <div class="row">
+          <div class="swatch" style="background:var(--blue)"></div>
+          <div class="lbl">Side b</div>
+          <div class="val" id="vb">5</div>
+          <div class="unit">units</div>
         </div>
-        <input type="range" class="sl sl-b" id="sl-b" min="1" max="12" value="5" step="0.5"/>
+        <input id="sb" class="sl slb" type="range" min="1" max="12" step="0.5" value="5">
       </div>
 
-      <!-- Stick C -->
-      <div class="stick-block">
-        <div class="stick-top">
-          <div class="stick-bar" style="background:var(--rc)"></div>
-          <span class="stick-ltr" style="color:var(--rc)">c</span>
-          <span class="stick-num" id="val-c">5</span>
-          <span class="stick-unit">units</span>
-          <button class="lock-btn" id="lock-c" title="Lock c" onclick="toggleLock('c')">🔓</button>
+      <div class="block block-c">
+        <div class="row">
+          <div class="swatch" style="background:var(--green)"></div>
+          <div class="lbl">Side c</div>
+          <div class="val" id="vc">5</div>
+          <div class="unit">units</div>
         </div>
-        <input type="range" class="sl sl-c" id="sl-c" min="1" max="12" value="5" step="0.5"/>
+        <input id="sc" class="sl slc" type="range" min="1" max="12" step="0.5" value="5">
       </div>
 
-      <div class="sb-div"></div>
+      <div class="div"></div>
 
-      <div class="tog-group">
-        <div class="tog-sec-lbl">Show</div>
-        <div class="tog-row" onclick="toggleCircles()">
-          <button class="tswitch" id="tsw-c"></button>
-          <span class="tog-lbl">Reach circles</span>
-        </div>
-        <div class="tog-row" onclick="toggleGrid()">
-          <button class="tswitch" id="tsw-g"></button>
-          <span class="tog-lbl">Grid</span>
-        </div>
+      <div class="toggle" onclick="toggleCircles()">
+        <div class="ts" id="ts"></div>
+        <div class="tlbl">Show reach circles</div>
       </div>
 
-      <div class="sb-div"></div>
+      <div class="verdict" id="verdict">Arrange the sticks to form a triangle</div>
 
-      <div class="preset-sec">
-        <div class="preset-sec-lbl">Try these lengths</div>
-        <button class="preset-btn" onclick="applyPreset(3,4,5)">
-          <div class="pb-dot" style="background:var(--ra)"></div>
-          <div class="pb-dot" style="background:var(--rb)"></div>
-          <div class="pb-dot" style="background:var(--rc)"></div>
-          <span>3 · 4 · 5</span>
-        </button>
-        <button class="preset-btn" onclick="applyPreset(5,5,5)">
-          <div class="pb-dot" style="background:var(--ra)"></div>
-          <div class="pb-dot" style="background:var(--rb)"></div>
-          <div class="pb-dot" style="background:var(--rc)"></div>
-          <span>5 · 5 · 5</span>
-        </button>
-        <button class="preset-btn" onclick="applyPreset(2,3,6)">
-          <div class="pb-dot" style="background:var(--ra)"></div>
-          <div class="pb-dot" style="background:var(--rb)"></div>
-          <div class="pb-dot" style="background:var(--rc)"></div>
-          <span>2 · 3 · 6</span>
-        </button>
-        <button class="preset-btn" onclick="applyPreset(1,2,4)">
-          <div class="pb-dot" style="background:var(--ra)"></div>
-          <div class="pb-dot" style="background:var(--rb)"></div>
-          <div class="pb-dot" style="background:var(--rc)"></div>
-          <span>1 · 2 · 4</span>
-        </button>
-        <button class="preset-btn" onclick="applyPreset(6,7,8)">
-          <div class="pb-dot" style="background:var(--ra)"></div>
-          <div class="pb-dot" style="background:var(--rb)"></div>
-          <div class="pb-dot" style="background:var(--rc)"></div>
-          <span>6 · 7 · 8</span>
-        </button>
-      </div>
-
-      <div class="verdict-wrap">
-        <div class="verdict" id="verdict">Drag the sticks — try to close all three ends</div>
-        <button class="reset-btn" onclick="resetPositions()">↺ Reset positions</button>
-      </div>
+      <button class="reset" onclick="resetAll()">↺  Reset positions</button>
 
     </div>
   </div>
 
-  <!-- CANVAS -->
-  <div class="canvas-area" id="canvas-area">
-    <div class="hint-bar">
-      <span style="font-size:16px">✋</span>
-      <span class="hint-txt">Drag a <strong>tip</strong> to rotate the stick · drag the <strong>body</strong> to move it · try to join all three ends into a closed triangle</span>
+  <div class="main">
+    <div class="hint">
+      <span class="htag">Drag a <strong>tip</strong> to rotate</span>
+      <span class="hsep">·</span>
+      <span class="htag">Drag the <strong>middle</strong> to move</span>
+      <span class="hsep">·</span>
+      <span class="htag">Circles show each arm's <strong>reach</strong></span>
     </div>
     <canvas id="cvs"></canvas>
   </div>
 
 </div>
-
 <script>
-// ── POLYFILL ─────────────────────────────────────────────────────────────────
-if (!CanvasRenderingContext2D.prototype.roundRect) {
-  CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r) {
-    if(w<2*r)r=w/2; if(h<2*r)r=h/2;
-    this.beginPath();
-    this.moveTo(x+r,y); this.arcTo(x+w,y,x+w,y+h,r); this.arcTo(x+w,y+h,x,y+h,r);
-    this.arcTo(x,y+h,x,y,r); this.arcTo(x,y,x+w,y,r); this.closePath();
-    return this;
-  };
-}
+const cvs=document.getElementById('cvs');
+const ctx=cvs.getContext('2d');
+const DPR=Math.min(devicePixelRatio||1,2);
 
-// ── CONSTANTS ────────────────────────────────────────────────────────────────
-const STICK_W    = 11;   // rod thickness px
-const EP_R       = 9;    // endpoint radius px
-const HIT_EP     = 22;   // hit radius for endpoints
-const HIT_BODY   = 14;   // hit radius for body
-const SNAP_PX    = 26;   // px — joints glow when this close
-const CLOSE_PX   = 12;   // px — triangle "formed" threshold
+const STICK_W=6;   // stroke width
+const END_R=7;     // endpoint circle radius
+const HIT=22;
+const BODY_HIT=14;
+const CLOSE=18;
 
-const STICK_DEFS = [
-  { id:'a', col:'#C04030', col2:'#8C2818', ring:'rgba(192,64,48,.32)', tint:'rgba(192,64,48,.10)' },
-  { id:'b', col:'#1B5CA0', col2:'#103D70', ring:'rgba(27,92,160,.32)', tint:'rgba(27,92,160,.10)' },
-  { id:'c', col:'#1B7840', col2:'#0E5428', ring:'rgba(27,120,64,.32)', tint:'rgba(27,120,64,.10)' },
-];
+const cols=['#c45743','#3b72cf','#2f8f53'];
 
-// ── STATE ────────────────────────────────────────────────────────────────────
-let sLen = [5, 5, 5];             // logical lengths (units)
-let locks = [false, false, false];
-let showCircles = false, showGrid = false;
+let lens=[5,5,5], sticks=[], drag=null, showCircles=true;
 
-// sticks[i] = { p0:{x,y}, p1:{x,y} }  — pixel coordinates
-let sticks = STICK_DEFS.map(() => ({ p0:{x:0,y:0}, p1:{x:0,y:0} }));
+function ppu(){return Math.max(30,Math.min(54,W()/18))}
+function W(){return cvs.width/DPR}
+function H(){return cvs.height/DPR}
 
-let drag = null;
-// drag = { si: stickIndex, type: 'p0'|'p1'|'body',
-//          pivot: {x,y},     // for endpoint drag: the fixed end
-//          lenPx: number,    // fixed pixel length
-//          off0: {x,y},      // for body drag: offset from p0 at drag start
-//          off1: {x,y} }     //                offset from p1
+/* ─── layout ─── */
 
-let anyMoved = false;
-let successShown = false;
-
-// ── CANVAS ───────────────────────────────────────────────────────────────────
-const cvs = document.getElementById('cvs');
-const ctx  = cvs.getContext('2d');
-const PR   = Math.min(window.devicePixelRatio || 1, 2);
-
-function CW() { return cvs.width  / PR; }
-function CH() { return cvs.height / PR; }
-function ppu()   { return Math.max(28, Math.min(54, CW() / 18)); }
-
-// ── LAYOUT ───────────────────────────────────────────────────────────────────
-function layoutSticks() {
-  const w = CW(), h = CH(), s = ppu();
-  const x0 = w * 0.12;
-  const vg = h / 4;
-  sticks.forEach((st, i) => {
-    st.p0 = { x: x0,                    y: vg * (i + 1) };
-    st.p1 = { x: x0 + sLen[i] * s,  y: vg * (i + 1) };
-  });
-  anyMoved   = false;
-  successShown = false;
-}
-
-function resetPositions() {
-  layoutSticks();
-  draw();
-  setVerdict('idle');
-}
-
-// ── DRAW ─────────────────────────────────────────────────────────────────────
-function draw() {
-  const w = CW(), h = CH();
-  ctx.clearRect(0, 0, w, h);
-
-  // Background
-  drawBackground(w, h);
-  if (showGrid)    drawGrid(w, h);
-  if (showCircles) drawReachCircles(w, h);
-
-  // Joints before sticks (so sticks render on top)
-  if (anyMoved) drawJoints(w, h);
-
-  // Sticks
-  sticks.forEach((st, i) => drawStick(st, i));
-
-  // If triangle formed, fill it
-  const tri = findTriangle();
-  if (tri.formed) drawFilledTriangle(tri);
-}
-
-function drawBackground(w, h) {
-  ctx.fillStyle = '#FDFAF4';
-  ctx.fillRect(0, 0, w, h);
-  // Subtle vignette
-  const vg = ctx.createRadialGradient(w/2,h/2,h*0.2,w/2,h/2,h*0.85);
-  vg.addColorStop(0,'rgba(0,0,0,0)');
-  vg.addColorStop(1,'rgba(0,0,0,.04)');
-  ctx.fillStyle = vg; ctx.fillRect(0,0,w,h);
-}
-
-function drawGrid(w, h) {
-  const step = ppu();
-  ctx.strokeStyle = 'rgba(0,0,0,.05)'; ctx.lineWidth = 1;
-  for(let x=0;x<w;x+=step){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
-  for(let y=0;y<h;y+=step){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
-}
-
-function drawReachCircles(w, h) {
-  const s = ppu();
-  sticks.forEach((st, i) => {
-    const def = STICK_DEFS[i];
-    const len = sLen[i] * s;
-    // Circle centered at each endpoint
-    [st.p0, st.p1].forEach(pt => {
-      ctx.beginPath(); ctx.arc(pt.x, pt.y, len, 0, Math.PI*2);
-      ctx.fillStyle = def.tint; ctx.fill();
-      ctx.strokeStyle = def.ring; ctx.lineWidth = 1.5;
-      ctx.setLineDash([5,5]); ctx.stroke(); ctx.setLineDash([]);
-    });
-  });
-}
-
-function drawJoints(w, h) {
-  // For each pair of sticks, for each combo of endpoints, show proximity indicator
-  const all = [
-    [sticks[0].p0, sticks[0].p1],
-    [sticks[1].p0, sticks[1].p1],
-    [sticks[2].p0, sticks[2].p1],
+function resetAll(){
+  const s=ppu();
+  sticks=[
+    {p0:{x:W()*.18,y:H()*.50},p1:{x:W()*.18+lens[0]*s,y:H()*.50}},
+    {p0:{x:W()*.42,y:H()*.30},p1:{x:W()*.42+lens[1]*s,y:H()*.30}},
+    {p0:{x:W()*.42,y:H()*.70},p1:{x:W()*.42+lens[2]*s,y:H()*.70}}
   ];
-  for (let si = 0; si < 3; si++) {
-    for (let sj = si+1; sj < 3; sj++) {
-      for (let ei = 0; ei < 2; ei++) {
-        for (let ej = 0; ej < 2; ej++) {
-          const pi = all[si][ei], pj = all[sj][ej];
-          const d  = dist(pi, pj);
-          if (d < SNAP_PX * 2.5) {
-            const alpha = Math.max(0, 1 - d / (SNAP_PX * 2.5));
-            const mx = (pi.x + pj.x) / 2, my = (pi.y + pj.y) / 2;
-            const joined = d < CLOSE_PX;
-            // Glow circle at midpoint
-            const gR = joined ? 16 : 10 + (1-alpha)*6;
-            const grd = ctx.createRadialGradient(mx,my,0,mx,my,gR*2);
-            const col = joined ? '#1B7840' : '#A07020';
-            grd.addColorStop(0, col + (joined ? '55':'33'));
-            grd.addColorStop(1, 'transparent');
-            ctx.beginPath(); ctx.arc(mx,my,gR*2,0,Math.PI*2);
-            ctx.fillStyle = grd; ctx.fill();
-            if (joined) {
-              ctx.beginPath(); ctx.arc(mx,my,6,0,Math.PI*2);
-              ctx.fillStyle = '#1B7840'; ctx.fill();
-              ctx.strokeStyle='white'; ctx.lineWidth=2; ctx.stroke();
-            }
-          }
-        }
+  draw();updateVerdict();
+}
+
+/* ─── drawing ─── */
+
+function draw(){
+  ctx.clearRect(0,0,W(),H());
+  drawBG();
+
+  /* reach circles drawn FIRST (behind sticks) */
+  if(showCircles) drawConstruction();
+
+  /* triangle fill when sticks snap closed */
+  const tri=triangle();
+  if(tri.ok){
+    ctx.beginPath();
+    ctx.moveTo(tri.a.x,tri.a.y);
+    ctx.lineTo(tri.b.x,tri.b.y);
+    ctx.lineTo(tri.c.x,tri.c.y);
+    ctx.closePath();
+    ctx.fillStyle='rgba(47,143,83,.16)';
+    ctx.fill();
+    ctx.strokeStyle='rgba(47,143,83,.50)';
+    ctx.lineWidth=2;
+    ctx.stroke();
+  }
+
+  sticks.forEach((s,i)=>drawStick(s,i));
+}
+
+function drawBG(){
+  ctx.fillStyle='#fdfaf4';
+  ctx.fillRect(0,0,W(),H());
+
+  /* warm dot grid */
+  ctx.fillStyle='rgba(140,115,78,.17)';
+  for(let x=32;x<W();x+=32){
+    for(let y=32;y<H();y+=32){
+      ctx.beginPath();ctx.arc(x,y,1.2,0,Math.PI*2);ctx.fill();
+    }
+  }
+
+  /* very subtle edge vignette */
+  const vg=ctx.createRadialGradient(W()/2,H()/2,Math.min(W(),H())*.28,W()/2,H()/2,Math.max(W(),H())*.82);
+  vg.addColorStop(0,'rgba(0,0,0,0)');
+  vg.addColorStop(1,'rgba(20,12,4,.05)');
+  ctx.fillStyle=vg;
+  ctx.fillRect(0,0,W(),H());
+}
+
+/*
+  Reach circles — each anchored at sticks[i].p0, radius = stick length.
+  Rules:
+  ① Near-same pivot (centres < NEAR px apart) → merge into ONE neutral thin solid circle
+     per unique radius. Multiple dashes at the same spot disappear entirely.
+  ② Circles from different pivots that overlap geometrically → thin solid colored lines
+     (dashes disappear, keeping the visual clean).
+  ③ Isolated circles (no overlap with anything) → normal dashed colored circles.
+*/
+function drawConstruction(){
+  const rs  = lens.map(l => l * ppu());
+  const N   = sticks.length;
+  const NEAR = 26; // px — "same pivot" threshold
+
+  /* ── pass 1: mark circles that overlap with ANY other ── */
+  const overlaps = new Array(N).fill(false);
+  for(let i=0;i<N;i++){
+    for(let j=i+1;j<N;j++){
+      if(dist(sticks[i].p0, sticks[j].p0) < rs[i]+rs[j]){
+        overlaps[i]=true; overlaps[j]=true;
       }
+    }
+  }
+
+  /* ── pass 2: group near-same-centre circles, then draw ── */
+  const drawn = new Set();
+
+  for(let i=0;i<N;i++){
+    if(drawn.has(i)) continue;
+
+    /* build group of sticks sharing roughly the same p0 */
+    const grp=[i];
+    for(let j=i+1;j<N;j++){
+      if(!drawn.has(j) && dist(sticks[i].p0, sticks[j].p0) < NEAR){
+        grp.push(j);
+      }
+    }
+    grp.forEach(k=>drawn.add(k));
+
+    if(grp.length > 1){
+      /* ① Multiple sticks at same pivot → ONE neutral thin solid circle per unique radius */
+      const cx = grp.reduce((s,k)=>s+sticks[k].p0.x, 0)/grp.length;
+      const cy = grp.reduce((s,k)=>s+sticks[k].p0.y, 0)/grp.length;
+      const seenR = new Set();
+      grp.forEach(k=>{
+        const rk = Math.round(rs[k]);
+        if(seenR.has(rk)) return;
+        seenR.add(rk);
+        ctx.beginPath();
+        ctx.arc(cx, cy, rs[k], 0, Math.PI*2);
+        ctx.strokeStyle='rgba(50,40,30,.30)';
+        ctx.lineWidth=1.0;
+        ctx.stroke();
+      });
+
+    } else if(overlaps[i]){
+      /* ② Overlapping circle (different centre) → thin solid colored line, no fill */
+      const c=cols[i];
+      ctx.beginPath();
+      ctx.arc(sticks[i].p0.x, sticks[i].p0.y, rs[i], 0, Math.PI*2);
+      ctx.strokeStyle=c+'aa';
+      ctx.lineWidth=1.0;
+      ctx.stroke();
+
+    } else {
+      /* ③ Isolated → dashed colored circle with subtle fill */
+      const st=sticks[i], r=rs[i], c=cols[i];
+      ctx.beginPath();
+      ctx.arc(st.p0.x, st.p0.y, r, 0, Math.PI*2);
+      ctx.fillStyle=c+'0e';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(st.p0.x, st.p0.y, r, 0, Math.PI*2);
+      ctx.setLineDash([10,6]);
+      ctx.strokeStyle=c+'99';
+      ctx.lineWidth=1.8;
+      ctx.stroke();
+      ctx.setLineDash([]);
     }
   }
 }
 
-function drawStick(st, i) {
-  const def = STICK_DEFS[i];
-  const { p0, p1 } = st;
-  const isDraggedStick = drag && drag.si === i;
+function drawStick(st,i){
+  const c=cols[i];
+  const {p0,p1}=st;
+  const dx=p1.x-p0.x, dy=p1.y-p0.y;
+  const len=Math.hypot(dx,dy)||1;
 
-  // ── Shadow ──
+  /* drop shadow + body */
   ctx.save();
-  ctx.shadowColor   = 'rgba(0,0,0,.20)';
-  ctx.shadowBlur    = isDraggedStick ? 16 : 8;
-  ctx.shadowOffsetY = isDraggedStick ? 5  : 3;
-  ctx.strokeStyle   = def.col;
-  ctx.lineWidth     = STICK_W;
-  ctx.lineCap       = 'round';
-  ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
-  ctx.restore();
-
-  // ── Stick body — slightly darker underside ──
-  ctx.strokeStyle = def.col2; ctx.lineWidth = STICK_W + 2; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(p0.x+1, p0.y+2); ctx.lineTo(p1.x+1, p1.y+2); ctx.stroke();
-
-  // ── Main colour ──
-  ctx.strokeStyle = def.col; ctx.lineWidth = STICK_W; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
-
-  // ── Highlight stripe (perpendicular offset, lighter) ──
-  const ang = Math.atan2(p1.y-p0.y, p1.x-p0.x);
-  const nx  = -Math.sin(ang) * 3, ny = Math.cos(ang) * 3;
-  ctx.strokeStyle = 'rgba(255,255,255,.30)'; ctx.lineWidth = 3; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(p0.x+nx, p0.y+ny); ctx.lineTo(p1.x+nx, p1.y+ny); ctx.stroke();
-
-  // ── Length label ──
-  const mx  = (p0.x+p1.x)/2, my = (p0.y+p1.y)/2;
-  const len = dist(p0,p1) / ppu();
-  ctx.save();
-  ctx.translate(mx,my); ctx.rotate(ang);
-  ctx.fillStyle = 'rgba(253,250,244,.9)';
-  ctx.beginPath(); ctx.roundRect(-15,-10,30,14,4); ctx.fill();
-  ctx.fillStyle = def.col2;
-  ctx.font = '600 11px "DM Mono",monospace';
-  ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText(len.toFixed(1),0,-3);
-  ctx.restore();
-
-  // ── Both endpoints ──
-  drawEndpoint(p0, def, drag && drag.si===i && drag.type==='p0');
-  drawEndpoint(p1, def, drag && drag.si===i && drag.type==='p1');
-}
-
-function drawEndpoint(pt, def, active) {
-  const r = active ? EP_R + 3 : EP_R;
-  // Outer ring affordance
-  ctx.beginPath(); ctx.arc(pt.x, pt.y, r + 6, 0, Math.PI*2);
-  ctx.strokeStyle = active ? def.col : def.ring;
-  ctx.lineWidth   = active ? 1.5    : 1;
-  ctx.setLineDash([3,3]); ctx.stroke(); ctx.setLineDash([]);
-  // Fill
-  ctx.beginPath(); ctx.arc(pt.x, pt.y, r, 0, Math.PI*2);
-  ctx.fillStyle   = 'white'; ctx.fill();
-  ctx.strokeStyle = def.col; ctx.lineWidth = active ? 3 : 2.5; ctx.stroke();
-  // Centre dot
-  ctx.beginPath(); ctx.arc(pt.x, pt.y, 3, 0, Math.PI*2);
-  ctx.fillStyle = def.col; ctx.fill();
-}
-
-function drawFilledTriangle(tri) {
+  ctx.shadowColor='rgba(0,0,0,.20)';
+  ctx.shadowBlur=10;
+  ctx.shadowOffsetY=4;
   ctx.beginPath();
-  ctx.moveTo(tri.v0.x, tri.v0.y);
-  ctx.lineTo(tri.v1.x, tri.v1.y);
-  ctx.lineTo(tri.v2.x, tri.v2.y);
-  ctx.closePath();
-  ctx.fillStyle   = 'rgba(27,120,64,.12)'; ctx.fill();
-  ctx.strokeStyle = 'rgba(27,120,64,.45)'; ctx.lineWidth = 2; ctx.setLineDash([]); ctx.stroke();
+  ctx.moveTo(p0.x,p0.y);
+  ctx.lineTo(p1.x,p1.y);
+  ctx.strokeStyle=c;
+  ctx.lineWidth=STICK_W;
+  ctx.lineCap='round';
+  ctx.stroke();
+  ctx.restore();
+
+  /* endpoint circles */
+  [p0,p1].forEach(p=>{
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,END_R,0,Math.PI*2);
+    ctx.fillStyle='white';
+    ctx.fill();
+    ctx.strokeStyle=c;
+    ctx.lineWidth=2;
+    ctx.stroke();
+  });
+
+  /* length label — plain text, perpendicular offset, white halo for readability */
+  const m=mid(p0,p1);
+  let nx=-dy/len, ny=dx/len;
+  if(ny>0){nx=-nx;ny=-ny;}   /* always above */
+  const lx=m.x+nx*20, ly=m.y+ny*20;
+
+  ctx.save();
+  ctx.font='600 14px "DM Sans"';
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+  ctx.strokeStyle='rgba(253,250,244,.96)';
+  ctx.lineWidth=5;
+  ctx.lineJoin='round';
+  ctx.strokeText(lens[i],lx,ly);
+  ctx.fillStyle='#1a1510';
+  ctx.fillText(lens[i],lx,ly);
+  ctx.restore();
 }
 
-// ── TRIANGLE DETECTION ───────────────────────────────────────────────────────
-// A triangle is formed when each stick's endpoints connect to the other two sticks
-// in a cycle: A[i]≈B[j] AND A[1-i]≈C[k] AND B[1-j]≈C[1-k]
-// Returns { formed:bool, v0,v1,v2 } (vertices = midpoints of joined pairs)
+/* ─── logic ─── */
 
-function findTriangle() {
-  const P = sticks.map(s => [s.p0, s.p1]);
-  for (let i = 0; i < 2; i++) {
-    for (let j = 0; j < 2; j++) {
-      for (let k = 0; k < 2; k++) {
-        const d0 = dist(P[0][i],   P[1][j]);
-        const d1 = dist(P[0][1-i], P[2][k]);
-        const d2 = dist(P[1][1-j], P[2][1-k]);
-        if (d0 < CLOSE_PX && d1 < CLOSE_PX && d2 < CLOSE_PX) {
-          return {
-            formed: true,
-            v0: mid(P[0][i],   P[1][j]),
-            v1: mid(P[0][1-i], P[2][k]),
-            v2: mid(P[1][1-j], P[2][1-k]),
-          };
-        }
-      }
-    }
+function triangle(){
+  const P=sticks.map(s=>[s.p0,s.p1]);
+  for(let i=0;i<2;i++) for(let j=0;j<2;j++) for(let k=0;k<2;k++){
+    const d0=dist(P[0][i],P[1][j]);
+    const d1=dist(P[0][1-i],P[2][k]);
+    const d2=dist(P[1][1-j],P[2][1-k]);
+    if(d0<CLOSE&&d1<CLOSE&&d2<CLOSE)
+      return{ok:true,
+        a:mid(P[0][i],P[1][j]),
+        b:mid(P[0][1-i],P[2][k]),
+        c:mid(P[1][1-j],P[2][1-k])};
   }
-  return { formed: false };
+  return{ok:false};
 }
 
-// Count how many joints are "near" (for progress feedback)
-function countNearJoints() {
-  const P = sticks.map(s => [s.p0, s.p1]);
-  let best = 0;
-  for (let i = 0; i < 2; i++) {
-    for (let j = 0; j < 2; j++) {
-      for (let k = 0; k < 2; k++) {
-        let n = 0;
-        if (dist(P[0][i],   P[1][j])   < SNAP_PX) n++;
-        if (dist(P[0][1-i], P[2][k])   < SNAP_PX) n++;
-        if (dist(P[1][1-j], P[2][1-k]) < SNAP_PX) n++;
-        if (n > best) best = n;
-      }
-    }
+function updateVerdict(){
+  const el=document.getElementById('verdict');
+  if(triangle().ok){
+    el.textContent='Triangle formed! ✓';el.className='verdict ok';return;
   }
-  return best;
-}
-
-function canForm() {
-  const [a,b,c] = sLen;
-  return a+b>c && a+c>b && b+c>a;
-}
-
-// ── VERDICT ──────────────────────────────────────────────────────────────────
-function setVerdict(state) {
-  const el = document.getElementById('verdict');
-  const map = {
-    idle:  ['Drag the sticks — try to close all three ends', ''],
-    try:   ['Keep going — can you get all three tips to meet?', ''],
-    close: ['So close! One more…', 'close'],
-    ok:    ['Triangle formed! ✓', 'ok'],
-    no:    ['The ends can\'t all meet — these lengths won\'t close', 'no'],
-  };
-  const [txt, cls] = map[state] || map.idle;
-  el.textContent = txt;
-  el.className   = 'verdict' + (cls ? ' '+cls : '');
-}
-
-function updateVerdict() {
-  const tri = findTriangle();
-  if (tri.formed) {
-    setVerdict('ok');
-    if (!successShown) { successShown = true; }
-    return;
+  if(canForm()){
+    el.textContent='These lengths can form a triangle';el.className='verdict';
+  }else{
+    el.textContent='These lengths cannot form a triangle';el.className='verdict no';
   }
-  successShown = false;
-  if (!anyMoved) { setVerdict('idle'); return; }
-  const near = countNearJoints();
-  if (!canForm()) { setVerdict('no'); return; }
-  if (near >= 2)   setVerdict('close');
-  else if (near === 1) setVerdict('try');
-  else             setVerdict('try');
 }
 
-// ── HIT DETECTION ────────────────────────────────────────────────────────────
-function hitTest(pt) {
-  // Check sticks in reverse order (top-most first)
-  for (let i = sticks.length-1; i >= 0; i--) {
-    const st = sticks[i];
-    if (dist(pt, st.p0) < HIT_EP)
-      return { si:i, type:'p0', pivot:st.p1, lenPx:dist(st.p0,st.p1) };
-    if (dist(pt, st.p1) < HIT_EP)
-      return { si:i, type:'p1', pivot:st.p0, lenPx:dist(st.p0,st.p1) };
-    if (distToSeg(pt, st.p0, st.p1) < HIT_BODY)
-      return { si:i, type:'body',
-        off0:{ x:pt.x-st.p0.x, y:pt.y-st.p0.y },
-        off1:{ x:pt.x-st.p1.x, y:pt.y-st.p1.y } };
+function canForm(){const[a,b,c]=lens;return a+b>c&&a+c>b&&b+c>a}
+
+/* ─── interaction ─── */
+
+function hit(pt){
+  for(let i=sticks.length-1;i>=0;i--){
+    const s=sticks[i];
+    if(dist(pt,s.p0)<HIT) return{i,type:'p0',pivot:s.p1,len:dist(s.p0,s.p1)};
+    if(dist(pt,s.p1)<HIT) return{i,type:'p1',pivot:s.p0,len:dist(s.p0,s.p1)};
+    if(segDist(pt,s.p0,s.p1)<BODY_HIT)
+      return{i,type:'body',
+        o0:{x:pt.x-s.p0.x,y:pt.y-s.p0.y},
+        o1:{x:pt.x-s.p1.x,y:pt.y-s.p1.y}};
   }
   return null;
 }
 
-// ── DRAG ─────────────────────────────────────────────────────────────────────
-function startDrag(e) {
+function start(e){const p=ptE(e),h=hit(p);if(h)drag=h}
+function move(e){
+  if(!drag)return;
   e.preventDefault();
-  const pt = evPt(e);
-  const hit = hitTest(pt);
-  if (!hit) return;
-  drag = hit;
-  anyMoved = true;
-  cvs.style.cursor = 'grabbing';
-}
-
-function doDrag(e) {
-  if (!drag) return;
-  e.preventDefault();
-  const pt = evPt(e);
-  const st = sticks[drag.si];
-
-  if (drag.type === 'body') {
-    // Translate whole stick, keep length and angle
-    st.p0 = { x: pt.x - drag.off0.x, y: pt.y - drag.off0.y };
-    st.p1 = { x: pt.x - drag.off1.x, y: pt.y - drag.off1.y };
-  } else {
-    // Rotate around pivot: move free end to cursor, constrained to circle of radius lenPx
-    const ang = Math.atan2(pt.y - drag.pivot.y, pt.x - drag.pivot.x);
-    const free = { x: drag.pivot.x + Math.cos(ang)*drag.lenPx, y: drag.pivot.y + Math.sin(ang)*drag.lenPx };
-    if (drag.type === 'p0') { st.p0 = free; st.p1 = drag.pivot; }
-    else                    { st.p1 = free; st.p0 = drag.pivot; }
+  const p=ptE(e),s=sticks[drag.i];
+  if(drag.type==='body'){
+    s.p0={x:p.x-drag.o0.x,y:p.y-drag.o0.y};
+    s.p1={x:p.x-drag.o1.x,y:p.y-drag.o1.y};
+  }else{
+    const a=Math.atan2(p.y-drag.pivot.y,p.x-drag.pivot.x);
+    const free={x:drag.pivot.x+Math.cos(a)*drag.len,y:drag.pivot.y+Math.sin(a)*drag.len};
+    if(drag.type==='p0'){s.p0=free;s.p1=drag.pivot}else{s.p1=free;s.p0=drag.pivot}
   }
+  draw();updateVerdict();
+}
+function end(){drag=null}
 
+function toggleCircles(){
+  showCircles=!showCircles;
+  document.getElementById('ts').classList.toggle('on',showCircles);
   draw();
-  updateVerdict();
 }
 
-function endDrag() {
-  drag = null;
-  cvs.style.cursor = 'default';
+function fill(id){
+  const sl=document.getElementById('s'+id);
+  sl.style.setProperty('--pct',((sl.value-1)/(12-1))*100+'%');
 }
 
-cvs.addEventListener('mousedown',  startDrag);
-window.addEventListener('mousemove', doDrag);
-window.addEventListener('mouseup',   endDrag);
-cvs.addEventListener('touchstart', startDrag, { passive:false });
-window.addEventListener('touchmove',  doDrag,   { passive:false });
-window.addEventListener('touchend',   endDrag);
-
-cvs.addEventListener('mousemove', e => {
-  if (drag) return;
-  const pt  = evPt(e);
-  const hit = hitTest(pt);
-  if (!hit)             cvs.style.cursor = 'default';
-  else if (hit.type === 'body') cvs.style.cursor = 'grab';
-  else                  cvs.style.cursor = 'crosshair';
-});
-
-// ── SLIDERS ──────────────────────────────────────────────────────────────────
-const SL_MIN = 1, SL_MAX = 12;
-
-function updateSliderFill(id) {
-  const sl  = document.getElementById('sl-'+id);
-  const pct = ((+sl.value - SL_MIN) / (SL_MAX - SL_MIN) * 100).toFixed(1)+'%';
-  sl.style.setProperty('--pct', pct);
-}
-
-['a','b','c'].forEach((id,i) => {
-  updateSliderFill(id);
-  document.getElementById('sl-'+id).addEventListener('input', function() {
-    const val = +this.value;
-    sLen[i] = val;
-    document.getElementById('val-'+id).textContent = val%1===0 ? val : val.toFixed(1);
-    updateSliderFill(id);
-    // Keep direction, update length
-    const st  = sticks[i];
-    const dx  = st.p1.x - st.p0.x, dy = st.p1.y - st.p0.y;
-    const ang = Math.hypot(dx,dy) < 1 ? 0 : Math.atan2(dy,dx);
-    const len = val * ppu();
-    st.p1 = { x: st.p0.x + Math.cos(ang)*len, y: st.p0.y + Math.sin(ang)*len };
-    successShown = false;
-    draw(); updateVerdict();
+['a','b','c'].forEach((id,i)=>{
+  fill(id);
+  document.getElementById('s'+id).addEventListener('input',e=>{
+    lens[i]=+e.target.value;
+    document.getElementById('v'+id).textContent=lens[i];
+    fill(id);
+    const s=sticks[i];
+    const a=Math.atan2(s.p1.y-s.p0.y,s.p1.x-s.p0.x);
+    s.p1={x:s.p0.x+Math.cos(a)*lens[i]*ppu(),y:s.p0.y+Math.sin(a)*lens[i]*ppu()};
+    draw();updateVerdict();
   });
 });
 
-// ── LOCK ─────────────────────────────────────────────────────────────────────
-function toggleLock(id) {
-  const i = {a:0,b:1,c:2}[id];
-  locks[i] = !locks[i];
-  const btn = document.getElementById('lock-'+id);
-  btn.classList.toggle('locked', locks[i]);
-  btn.textContent = locks[i] ? '🔒' : '🔓';
-  document.getElementById('sl-'+id).disabled = locks[i];
+/* ─── resize ─── */
+
+function resize(){
+  const area=document.querySelector('.main');
+  const hh=document.querySelector('.hint').offsetHeight;
+  const w=area.clientWidth,h=area.clientHeight-hh;
+  cvs.style.width=w+'px';cvs.style.height=h+'px';
+  cvs.width=w*DPR;cvs.height=h*DPR;
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  resetAll();
 }
 
-// ── TOGGLES ──────────────────────────────────────────────────────────────────
-function toggleCircles() {
-  showCircles = !showCircles;
-  document.getElementById('tsw-c').classList.toggle('on', showCircles);
-  draw();
-}
-function toggleGrid() {
-  showGrid = !showGrid;
-  document.getElementById('tsw-g').classList.toggle('on', showGrid);
-  draw();
-}
+/* ─── helpers ─── */
 
-// ── PRESETS ──────────────────────────────────────────────────────────────────
-function applyPreset(a, b, c) {
-  sLen = [a,b,c];
-  ['a','b','c'].forEach((id,i) => {
-    const sl = document.getElementById('sl-'+id);
-    sl.value = sLen[i];
-    document.getElementById('val-'+id).textContent = sLen[i];
-    updateSliderFill(id);
-  });
-  layoutSticks();
-  draw(); setVerdict('idle');
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function mid(a,b){return{x:(a.x+b.x)/2,y:(a.y+b.y)/2}}
+function segDist(p,a,b){
+  const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy;
+  let t=((p.x-a.x)*dx+(p.y-a.y)*dy)/l;
+  t=Math.max(0,Math.min(1,t));
+  return dist(p,{x:a.x+t*dx,y:a.y+t*dy});
+}
+function ptE(e){
+  const r=cvs.getBoundingClientRect(),s=e.touches?e.touches[0]:e;
+  return{x:(s.clientX-r.left)*(cvs.width/DPR)/r.width,
+         y:(s.clientY-r.top)*(cvs.height/DPR)/r.height};
 }
 
-// ── RESIZE ───────────────────────────────────────────────────────────────────
-function resize() {
-  const area = document.getElementById('canvas-area');
-  const hintH = area.querySelector('.hint-bar').offsetHeight;
-  const W2 = area.clientWidth  || 700;
-  const H2 = Math.max(250, (area.clientHeight || 500) - hintH);
-  const prevW = CW() || W2, prevH = CH() || H2;
-  cvs.style.width  = W2+'px'; cvs.style.height = H2+'px';
-  cvs.width  = W2*PR;         cvs.height = H2*PR;
-  ctx.resetTransform(); ctx.scale(PR,PR);
-  // Scale existing positions proportionally
-  const sx = W2/prevW, sy = H2/prevH;
-  sticks.forEach(st => {
-    st.p0.x *= sx; st.p0.y *= sy;
-    st.p1.x *= sx; st.p1.y *= sy;
-  });
-  // If no meaningful scale, just layout
-  if (Math.abs(sx-1) > 0.01 || Math.abs(sy-1) > 0.01) {
-    if (!anyMoved) layoutSticks();
-  }
-  draw();
-}
-let rsT; window.addEventListener('resize', () => { clearTimeout(rsT); rsT=setTimeout(resize,60); });
+/* ─── init ─── */
 
-// ── HELPERS ──────────────────────────────────────────────────────────────────
-function dist(a,b)  { return Math.hypot(a.x-b.x, a.y-b.y); }
-function mid(a,b)   { return { x:(a.x+b.x)/2, y:(a.y+b.y)/2 }; }
+cvs.addEventListener('mousedown',start);
+window.addEventListener('mousemove',move);
+window.addEventListener('mouseup',end);
+cvs.addEventListener('touchstart',start,{passive:false});
+window.addEventListener('touchmove',move,{passive:false});
+window.addEventListener('touchend',end);
+window.addEventListener('resize',resize);
 
-function distToSeg(p, a, b) {
-  const dx=b.x-a.x, dy=b.y-a.y, len2=dx*dx+dy*dy;
-  if (len2<1) return dist(p,a);
-  let t = ((p.x-a.x)*dx+(p.y-a.y)*dy)/len2;
-  t = Math.max(0.1, Math.min(0.9, t)); // exclude endpoints (they have their own zone)
-  return dist(p, { x:a.x+t*dx, y:a.y+t*dy });
-}
-
-function evPt(e) {
-  const rc  = cvs.getBoundingClientRect();
-  const src = e.touches ? e.touches[0] : e;
-  return {
-    x: (src.clientX-rc.left) * (cvs.width/PR) / rc.width,
-    y: (src.clientY-rc.top)  * (cvs.height/PR) / rc.height,
-  };
-}
-
-// ── INIT ─────────────────────────────────────────────────────────────────────
 resize();
+document.getElementById('ts').classList.add('on');
 </script>
 </body>
 </html>
